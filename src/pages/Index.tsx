@@ -10,6 +10,8 @@ import PollenForecastTab from '@/components/weather/PollenForecastTab';
 import WeatherHistoryTab from '@/components/weather/WeatherHistoryTab';
 import PrecipitationTab from '@/components/weather/PrecipitationTab';
 import AnalyticsTab from '@/components/weather/AnalyticsTab';
+import NotificationSettings from '@/components/weather/NotificationSettings';
+import SynopticMap from '@/components/weather/SynopticMap';
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
@@ -225,6 +227,8 @@ const Index = () => {
 
         <AirQualityCard airQualityData={airQualityData} />
 
+        <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
+
         <Tabs defaultValue="hourly" className="w-full">
           <TabsList className="bg-white/20 backdrop-blur-sm border-0 p-1">
             <TabsTrigger value="hourly" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
@@ -251,6 +255,10 @@ const Index = () => {
               <Icon name="LineChart" size={16} className="mr-2" />
               Аналитика
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="Bell" size={16} className="mr-2" />
+              Уведомления
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="hourly" className="mt-6">
@@ -275,6 +283,10 @@ const Index = () => {
 
           <TabsContent value="analytics" className="mt-6">
             <AnalyticsTab loading={loading} dailyForecast={dailyForecast} />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="mt-6">
+            <NotificationSettings />
           </TabsContent>
         </Tabs>
       </div>

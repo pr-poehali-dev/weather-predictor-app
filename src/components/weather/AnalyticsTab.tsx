@@ -14,7 +14,7 @@ export default function AnalyticsTab({ loading, dailyForecast }: AnalyticsTabPro
           <Icon name="Brain" size={24} className="text-white" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-[#34495E]">Прогноз от Метеум AI</h3>
+          <h3 className="text-lg font-semibold text-[#34495E]">Прогноз от Волк-синоптик AI</h3>
           <p className="text-sm text-[#34495E]/60">Нейросетевой анализ погодных условий</p>
         </div>
       </div>
