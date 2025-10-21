@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Get weather for Moscow",
+      "method": "GET",
+      "path": "/?city=Москва",
+      "expectedStatus": 200
+    }
+  ]
+}
