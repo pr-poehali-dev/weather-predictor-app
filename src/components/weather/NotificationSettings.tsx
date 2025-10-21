@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+
+const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
 
 export default function NotificationSettings() {
   const { toast } = useToast();
@@ -17,8 +19,16 @@ export default function NotificationSettings() {
     pollenHigh: true,
     pollenMedium: false,
     weatherAlert: true,
-    dailyForecast: false
+    dailyForecast: false,
+    dailyForecastTime: '08:00'
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('weatherNotifications');
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    }
+  }, []);
 
   const handleSave = () => {
     if (settings.emailEnabled && !settings.email) {
@@ -43,8 +53,53 @@ export default function NotificationSettings() {
     
     toast({
       title: '✅ Настройки сохранены',
-      description: 'Вы будете получать уведомления при опасных уровнях пыльцы',
+      description: 'Уведомления настроены успешно!',
     });
+  };
+
+  const handleTestNotification = async () => {
+    if (!settings.emailEnabled && !settings.telegramEnabled) {
+      toast({
+        title: '⚠️ Внимание',
+        description: 'Включите хотя бы один способ уведомлений',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(NOTIFICATIONS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: settings.emailEnabled ? settings.email : '',
+          telegram: settings.telegramEnabled ? settings.telegram : '',
+          message: '🧪 Тестовое уведомление от Волк-синоптик!\n\nЕсли вы видите это сообщение, уведомления работают корректно.',
+          type: 'info'
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: '✅ Тест успешен',
+          description: 'Уведомление отправлено! Проверьте почту или Telegram.',
+        });
+      } else {
+        toast({
+          title: '❌ Ошибка',
+          description: 'Не удалось отправить уведомление',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '❌ Ошибка',
+        description: 'Не удалось подключиться к серверу',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -165,29 +220,53 @@ export default function NotificationSettings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="Calendar" size={18} className="text-blue-600" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Ежедневный прогноз</div>
-                  <div className="text-xs text-[#34495E]/60">Каждое утро в 8:00</div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Icon name="Calendar" size={18} className="text-blue-600" />
+                  <div>
+                    <div className="font-medium text-[#34495E]">Ежедневный прогноз</div>
+                    <div className="text-xs text-[#34495E]/60">Выберите время получения прогноза</div>
+                  </div>
                 </div>
+                <Switch
+                  checked={settings.dailyForecast}
+                  onCheckedChange={(checked) => setSettings({ ...settings, dailyForecast: checked })}
+                />
               </div>
-              <Switch
-                checked={settings.dailyForecast}
-                onCheckedChange={(checked) => setSettings({ ...settings, dailyForecast: checked })}
-              />
+              {settings.dailyForecast && (
+                <div className="ml-12 flex items-center gap-3">
+                  <Label htmlFor="forecast-time" className="text-sm text-[#34495E]">Время:</Label>
+                  <Input
+                    id="forecast-time"
+                    type="time"
+                    value={settings.dailyForecastTime}
+                    onChange={(e) => setSettings({ ...settings, dailyForecastTime: e.target.value })}
+                    className="w-32"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        <Button 
-          onClick={handleSave}
-          className="w-full bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90"
-        >
-          <Icon name="Save" size={18} className="mr-2" />
-          Сохранить настройки
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={handleSave}
+            className="flex-1 bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90"
+          >
+            <Icon name="Save" size={18} className="mr-2" />
+            Сохранить настройки
+          </Button>
+          <Button 
+            onClick={handleTestNotification}
+            variant="outline"
+            className="flex-1"
+          >
+            <Icon name="Send" size={18} className="mr-2" />
+            Тест уведомления
+          </Button>
+        </div>
       </div>
     </Card>
   );

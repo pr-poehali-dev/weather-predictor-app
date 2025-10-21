@@ -43,7 +43,7 @@ export default function WeatherHeader({
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-2xl bg-white/20 backdrop-blur-sm">
-          <div className="text-5xl">🐺</div>
+          <Icon name="CloudSun" size={40} className="text-white" />
         </div>
         <div>
           <h1 className="text-4xl font-bold text-white">Волк-синоптик</h1>

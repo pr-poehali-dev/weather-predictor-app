@@ -1,4 +1,5 @@
 {
+  "notifications": "https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1",
   "air-quality": "https://functions.poehali.dev/fe7bc55e-5d6e-4c25-a2bf-2fd682293e6a",
   "geocoding": "https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a",
   "weather": "https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470"

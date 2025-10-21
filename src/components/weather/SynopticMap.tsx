@@ -84,9 +84,9 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
 
         if (Math.abs(x - centerX) < 50 && Math.abs(y - centerY) < 50) continue;
 
-        if (layerType === 'wind' && windSpeed > 0) {
+        if (layerType === 'wind') {
           const angle = (windDeg - 90) * (Math.PI / 180);
-          const arrowLength = Math.min(windSpeed * 1.5, 40);
+          const arrowLength = Math.max(Math.min(windSpeed * 1.5, 40), 15);
           
           const color = windSpeed > 30 ? '#E74C3C' : windSpeed > 15 ? '#F39C12' : '#4A90E2';
           

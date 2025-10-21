@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "Test notification endpoint with email",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "message": "Высокий уровень пыльцы! Индекс: 9.5/10",
+        "type": "pollen_high"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "results": {}
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
