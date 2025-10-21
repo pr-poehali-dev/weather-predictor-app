@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Get air quality for Moscow",
+      "method": "GET",
+      "path": "/?lat=55.7558&lon=37.6173",
+      "expectedStatus": 200
+    }
+  ]
+}

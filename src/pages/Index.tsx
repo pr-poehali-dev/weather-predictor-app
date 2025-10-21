@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
+const AIR_QUALITY_API_URL = 'https://functions.poehali.dev/fe7bc55e-5d6e-4c25-a2bf-2fd682293e6a';
 
 interface Location {
   name: string;
@@ -29,11 +30,13 @@ const Index = () => {
     country: 'Россия'
   });
   const [weatherData, setWeatherData] = useState<any>(null);
+  const [airQualityData, setAirQualityData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
+  const [geolocating, setGeolocating] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout>();
   
   const popularCities = [
@@ -45,6 +48,7 @@ const Index = () => {
 
   useEffect(() => {
     fetchWeather(selectedLocation.lat, selectedLocation.lon);
+    fetchAirQuality(selectedLocation.lat, selectedLocation.lon);
   }, [selectedLocation]);
 
   useEffect(() => {
@@ -95,6 +99,65 @@ const Index = () => {
     }
   };
 
+  const fetchAirQuality = async (lat: number, lon: number) => {
+    try {
+      const response = await fetch(`${AIR_QUALITY_API_URL}?lat=${lat}&lon=${lon}`);
+      const data = await response.json();
+      setAirQualityData(data);
+    } catch (error) {
+      console.error('Failed to fetch air quality:', error);
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Геолокация не поддерживается вашим браузером');
+      return;
+    }
+
+    setGeolocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        try {
+          const response = await fetch(`${GEOCODING_API_URL}?query=${lat},${lon}`);
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            const location = data.results[0];
+            setSelectedLocation(location);
+          } else {
+            setSelectedLocation({
+              name: 'Моё местоположение',
+              lat,
+              lon,
+              display_name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+              country: ''
+            });
+          }
+        } catch (error) {
+          console.error('Failed to reverse geocode:', error);
+          setSelectedLocation({
+            name: 'Моё местоположение',
+            lat,
+            lon,
+            display_name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+            country: ''
+          });
+        } finally {
+          setGeolocating(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Не удалось определить местоположение');
+        setGeolocating(false);
+      }
+    );
+  };
+
   const selectLocation = (location: Location) => {
     setSelectedLocation(location);
     setOpen(false);
@@ -141,9 +204,10 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col gap-3 w-full md:w-auto">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
+            <div className="flex gap-2">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
                   variant="secondary"
                   role="combobox"
                   aria-expanded={open}
@@ -218,6 +282,17 @@ const Index = () => {
                 </Command>
               </PopoverContent>
             </Popover>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={getCurrentLocation}
+              disabled={geolocating}
+              className="bg-white/95 text-[#34495E] hover:bg-white backdrop-blur-sm"
+              title="Моё местоположение"
+            >
+              <Icon name={geolocating ? "Loader2" : "MapPinned"} size={16} className={geolocating ? "animate-spin" : ""} />
+            </Button>
+          </div>
           </div>
         </div>
 
@@ -298,6 +373,96 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {airQualityData && Object.keys(airQualityData.allergens || {}).length > 0 && (
+          <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-[#98D8C8] to-[#4A90E2]">
+                  <Icon name="Wind" size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-[#34495E]">Качество воздуха и аллергены</h3>
+                  <p className="text-sm text-[#34495E]/60">Индекс качества воздуха: {airQualityData.aqi?.value || 0} — {airQualityData.aqi?.level}</p>
+                </div>
+              </div>
+              <Badge 
+                variant="secondary" 
+                className={`text-sm ${
+                  airQualityData.aqi?.color === 'green' ? 'bg-green-100 text-green-700' :
+                  airQualityData.aqi?.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+                  airQualityData.aqi?.color === 'orange' ? 'bg-orange-100 text-orange-700' :
+                  airQualityData.aqi?.color === 'red' ? 'bg-red-100 text-red-700' :
+                  'bg-purple-100 text-purple-700'
+                }`}
+              >
+                AQI {airQualityData.aqi?.value}
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {Object.entries(airQualityData.allergens || {}).map(([key, allergen]: [string, any]) => (
+                <div 
+                  key={key} 
+                  className={`p-4 rounded-xl border-2 ${
+                    allergen.risk === 'very_high' ? 'border-red-300 bg-red-50' :
+                    allergen.risk === 'high' ? 'border-orange-300 bg-orange-50' :
+                    allergen.risk === 'medium' ? 'border-yellow-300 bg-yellow-50' :
+                    'border-green-300 bg-green-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <Icon name={allergen.icon} size={32} className={`${
+                      allergen.risk === 'very_high' ? 'text-red-600' :
+                      allergen.risk === 'high' ? 'text-orange-600' :
+                      allergen.risk === 'medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`} />
+                    <div>
+                      <div className="font-semibold text-[#34495E] text-sm">{allergen.name}</div>
+                      <div className={`text-xs font-medium ${
+                        allergen.risk === 'very_high' ? 'text-red-600' :
+                        allergen.risk === 'high' ? 'text-orange-600' :
+                        allergen.risk === 'medium' ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {allergen.level}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {airQualityData.pollutants && (
+              <div className="mt-6 pt-6 border-t border-[#34495E]/10">
+                <h4 className="text-sm font-semibold text-[#34495E]/70 mb-3">Загрязняющие вещества</h4>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">PM2.5</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.pm25} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">PM10</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.pm10} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">NO₂</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.no2} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">O₃</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.o3} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">CO</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.co} µg/m³</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
 
         <Tabs defaultValue="hourly" className="w-full">
           <TabsList className="bg-white/20 backdrop-blur-sm border-0 p-1">
