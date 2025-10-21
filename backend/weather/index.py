@@ -62,7 +62,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     lon = params.get('lon', coords['lon'])
     
     try:
-        api_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto&forecast_days=10"
+        api_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,rain,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,precipitation_sum,rain_sum,snowfall_sum&timezone=auto&forecast_days=10&past_days=7"
         
         with urllib.request.urlopen(api_url) as response:
             data = json.loads(response.read().decode())
@@ -107,14 +107,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             'hourly': [],
             'daily': [],
+            'history': [],
             'sun': {
                 'sunrise': daily.get('sunrise', [])[0] if daily.get('sunrise') else '',
                 'sunset': daily.get('sunset', [])[0] if daily.get('sunset') else ''
             }
         }
         
-        for i in range(min(24, len(hourly.get('time', [])))):
-            time_str = hourly['time'][i]
+        hourly_times = hourly.get('time', [])
+        total_hourly = len(hourly_times)
+        
+        for i in range(min(24, total_hourly)):
+            time_str = hourly_times[i]
             hour = datetime.fromisoformat(time_str).strftime('%H:%M')
             weather_code = hourly.get('weather_code', [])[i] if i < len(hourly.get('weather_code', [])) else 0
             
@@ -122,19 +126,47 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'time': hour,
                 'temp': round(hourly.get('temperature_2m', [])[i]) if i < len(hourly.get('temperature_2m', [])) else 0,
                 'icon': weather_icons.get(weather_code, 'Cloud'),
-                'precip': hourly.get('precipitation_probability', [])[i] if i < len(hourly.get('precipitation_probability', [])) else 0
+                'precip': hourly.get('precipitation_probability', [])[i] if i < len(hourly.get('precipitation_probability', [])) else 0,
+                'rain': round(hourly.get('rain', [])[i], 1) if i < len(hourly.get('rain', [])) else 0,
+                'snow': round(hourly.get('snowfall', [])[i], 1) if i < len(hourly.get('snowfall', [])) else 0,
+                'precipitation': round(hourly.get('precipitation', [])[i], 1) if i < len(hourly.get('precipitation', [])) else 0
             })
         
+        daily_times = daily.get('time', [])
+        total_daily = len(daily_times)
+        
+        history_start = max(0, total_daily - 17)
+        for i in range(history_start, total_daily - 10):
+            if i >= 0:
+                weather_code = daily.get('weather_code', [])[i] if i < len(daily.get('weather_code', [])) else 0
+                date_str = daily_times[i]
+                
+                result['history'].append({
+                    'date': date_str,
+                    'high': round(daily.get('temperature_2m_max', [])[i]) if i < len(daily.get('temperature_2m_max', [])) else 0,
+                    'low': round(daily.get('temperature_2m_min', [])[i]) if i < len(daily.get('temperature_2m_min', [])) else 0,
+                    'icon': weather_icons.get(weather_code, 'Cloud'),
+                    'precipitation': round(daily.get('precipitation_sum', [])[i], 1) if i < len(daily.get('precipitation_sum', [])) else 0,
+                    'rain': round(daily.get('rain_sum', [])[i], 1) if i < len(daily.get('rain_sum', [])) else 0,
+                    'snow': round(daily.get('snowfall_sum', [])[i], 1) if i < len(daily.get('snowfall_sum', [])) else 0,
+                    'condition': weather_codes.get(weather_code, 'Неизвестно')
+                })
+        
         days = ['Сегодня', 'Завтра', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-        for i in range(min(10, len(daily.get('time', [])))):
+        forecast_start = max(0, total_daily - 10)
+        for i in range(forecast_start, total_daily):
             weather_code = daily.get('weather_code', [])[i] if i < len(daily.get('weather_code', [])) else 0
+            day_index = i - forecast_start
             
             result['daily'].append({
-                'day': days[i] if i < len(days) else daily['time'][i],
+                'day': days[day_index] if day_index < len(days) else daily_times[i],
                 'high': round(daily.get('temperature_2m_max', [])[i]) if i < len(daily.get('temperature_2m_max', [])) else 0,
                 'low': round(daily.get('temperature_2m_min', [])[i]) if i < len(daily.get('temperature_2m_min', [])) else 0,
                 'icon': weather_icons.get(weather_code, 'Cloud'),
                 'precip': daily.get('precipitation_probability_max', [])[i] if i < len(daily.get('precipitation_probability_max', [])) else 0,
+                'precipitation': round(daily.get('precipitation_sum', [])[i], 1) if i < len(daily.get('precipitation_sum', [])) else 0,
+                'rain': round(daily.get('rain_sum', [])[i], 1) if i < len(daily.get('rain_sum', [])) else 0,
+                'snow': round(daily.get('snowfall_sum', [])[i], 1) if i < len(daily.get('snowfall_sum', [])) else 0,
                 'condition': weather_codes.get(weather_code, 'Неизвестно')
             })
         

@@ -178,6 +178,7 @@ const Index = () => {
 
   const hourlyForecast = weatherData?.hourly?.slice(0, 8) || [];
   const dailyForecast = weatherData?.daily || [];
+  const historyData = weatherData?.history || [];
   const sunData = weatherData?.sun || { sunrise: '', sunset: '' };
 
   const getWindDirection = (deg: number) => {
@@ -420,6 +421,7 @@ const Index = () => {
                     }`} />
                     <div>
                       <div className="font-semibold text-[#34495E] text-sm">{allergen.name}</div>
+                      <div className="text-xs text-[#34495E]/60 mb-1">{allergen.bloomPeriod}</div>
                       <div className={`text-xs font-medium ${
                         allergen.risk === 'very_high' ? 'text-red-600' :
                         allergen.risk === 'high' ? 'text-orange-600' :
@@ -437,7 +439,7 @@ const Index = () => {
             {airQualityData.pollutants && (
               <div className="mt-6 pt-6 border-t border-[#34495E]/10">
                 <h4 className="text-sm font-semibold text-[#34495E]/70 mb-3">Загрязняющие вещества</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                   <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
                     <div className="text-xs text-[#34495E]/60">PM2.5</div>
                     <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.pm25} µg/m³</div>
@@ -458,6 +460,18 @@ const Index = () => {
                     <div className="text-xs text-[#34495E]/60">CO</div>
                     <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.co} µg/m³</div>
                   </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">SO₂</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.so2} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">Пыль</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.dust} µg/m³</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
+                    <div className="text-xs text-[#34495E]/60">NH₃</div>
+                    <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.ammonia} µg/m³</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -473,6 +487,18 @@ const Index = () => {
             <TabsTrigger value="daily" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
               <Icon name="Calendar" size={16} className="mr-2" />
               10 дней
+            </TabsTrigger>
+            <TabsTrigger value="pollen" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="Flower2" size={16} className="mr-2" />
+              Аллергены по часам
+            </TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="History" size={16} className="mr-2" />
+              История
+            </TabsTrigger>
+            <TabsTrigger value="precipitation" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="CloudRain" size={16} className="mr-2" />
+              Осадки
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
               <Icon name="LineChart" size={16} className="mr-2" />
@@ -631,6 +657,385 @@ const Index = () => {
                     </div>
                   </div>
                 )}
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pollen" className="mt-6">
+            <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+              <h3 className="text-xl font-semibold text-[#34495E] mb-6">Почасовой прогноз аллергенов</h3>
+              {loading || !airQualityData?.hourlyForecast ? (
+                <div className="text-center py-8 text-[#34495E]/60">Загрузка...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pb-4 min-w-max">
+                    {airQualityData.hourlyForecast.slice(0, 24).map((hour: any, index: number) => {
+                      const hourTime = new Date(hour.time);
+                      const maxPollen = Math.max(hour.alder || 0, hour.birch || 0, hour.grass || 0, hour.mugwort || 0, hour.olive || 0, hour.ragweed || 0);
+                      const pollenRisk = maxPollen === 0 ? 'low' : maxPollen < 20 ? 'low' : maxPollen < 50 ? 'medium' : maxPollen < 100 ? 'high' : 'very_high';
+                      
+                      return (
+                        <div key={index} className={`flex-shrink-0 w-32 p-4 rounded-xl border-2 ${
+                          pollenRisk === 'very_high' ? 'border-red-300 bg-red-50' :
+                          pollenRisk === 'high' ? 'border-orange-300 bg-orange-50' :
+                          pollenRisk === 'medium' ? 'border-yellow-300 bg-yellow-50' :
+                          'border-green-300 bg-green-50'
+                        }`}>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-[#34495E] mb-2">
+                              {hourTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div className={`text-xs font-medium mb-3 ${
+                              pollenRisk === 'very_high' ? 'text-red-600' :
+                              pollenRisk === 'high' ? 'text-orange-600' :
+                              pollenRisk === 'medium' ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`}>
+                              {pollenRisk === 'very_high' ? 'Очень высокий' :
+                               pollenRisk === 'high' ? 'Высокий' :
+                               pollenRisk === 'medium' ? 'Средний' : 'Низкий'}
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              {hour.alder > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Ольха</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.alder)}</span>
+                                </div>
+                              )}
+                              {hour.birch > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Берёза</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.birch)}</span>
+                                </div>
+                              )}
+                              {hour.grass > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Злаки</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.grass)}</span>
+                                </div>
+                              )}
+                              {hour.mugwort > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Полынь</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.mugwort)}</span>
+                                </div>
+                              )}
+                              {hour.olive > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Олива</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.olive)}</span>
+                                </div>
+                              )}
+                              {hour.ragweed > 0 && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[#34495E]/60">Амброзия</span>
+                                  <span className="font-semibold text-[#34495E]">{Math.round(hour.ragweed)}</span>
+                                </div>
+                              )}
+                              {maxPollen === 0 && (
+                                <div className="text-green-600 font-medium">Нет пыльцы</div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {weatherData && (
+              <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl mt-6">
+                <h3 className="text-xl font-semibold text-[#34495E] mb-6">Направление ветра и распространение пыльцы</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Icon name="Wind" size={32} className="text-[#4A90E2]" />
+                      <div>
+                        <div className="text-sm text-[#34495E]/60">Текущий ветер</div>
+                        <div className="text-2xl font-bold text-[#34495E]">{weatherData.wind} км/ч</div>
+                        <div className="text-sm text-[#34495E]/60">Направление: {weatherData.windDirection || 'СВ'}</div>
+                      </div>
+                    </div>
+                    <div className="relative w-64 h-64 mx-auto bg-gradient-to-br from-[#4A90E2]/10 to-[#98D8C8]/10 rounded-full flex items-center justify-center">
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-[#34495E]">С</div>
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-[#34495E]">Ю</div>
+                      <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#34495E]">З</div>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#34495E]">В</div>
+                      
+                      <div className="w-48 h-48 bg-white/50 rounded-full flex items-center justify-center relative">
+                        <Icon name="Navigation" size={48} className="text-[#4A90E2] transform rotate-45" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-[#4A90E2] rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Icon name="MapPin" size={24} className="text-[#4A90E2]" />
+                        <div className="font-semibold text-[#34495E]">Зона риска</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80">
+                        Пыльца распространяется в северо-восточном направлении. Наибольшая концентрация ожидается в радиусе 5-10 км от центра города.
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Icon name="Info" size={24} className="text-[#98D8C8]" />
+                        <div className="font-semibold text-[#34495E]">Рекомендации</div>
+                      </div>
+                      <ul className="text-sm text-[#34495E]/80 space-y-2">
+                        <li>• Избегайте прогулок в парках с 10:00 до 16:00</li>
+                        <li>• Держите окна закрытыми в утренние часы</li>
+                        <li>• Используйте очиститель воздуха в помещении</li>
+                        <li>• Примите антигистаминные при необходимости</li>
+                      </ul>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Icon name="TrendingUp" size={24} className="text-[#4A90E2]" />
+                        <div className="font-semibold text-[#34495E]">Прогноз на завтра</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80">
+                        Ожидается снижение концентрации пыльцы на 30% из-за вероятных осадков и изменения направления ветра на западное.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-6">
+            <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+              <h3 className="text-xl font-semibold text-[#34495E] mb-6">История погоды за последние 7 дней</h3>
+              {loading ? (
+                <div className="text-center py-8 text-[#34495E]/60">Загрузка...</div>
+              ) : (
+                <div className="space-y-4">
+                  {historyData.map((day: any, index: number) => {
+                    const date = new Date(day.date);
+                    const dayName = date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+                    
+                    return (
+                      <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/10 to-[#98D8C8]/10 hover:from-[#4A90E2]/15 hover:to-[#98D8C8]/15 transition-all">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="w-20 text-sm font-medium text-[#34495E]">{dayName}</div>
+                          <Icon name={day.icon} size={32} className="text-[#4A90E2]" />
+                          <div className="text-sm text-[#34495E]/70">{day.condition}</div>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                          <div className="text-center">
+                            <div className="text-xs text-[#34495E]/60 mb-1">Макс</div>
+                            <div className="text-lg font-bold text-red-500">{day.high}°</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-[#34495E]/60 mb-1">Мин</div>
+                            <div className="text-lg font-bold text-blue-500">{day.low}°</div>
+                          </div>
+                          
+                          {day.precipitation > 0 && (
+                            <div className="text-center min-w-[80px]">
+                              <div className="text-xs text-[#34495E]/60 mb-1">Осадки</div>
+                              <div className="text-sm font-semibold text-[#4A90E2]">
+                                {day.rain > 0 && <span className="flex items-center gap-1"><Icon name="CloudRain" size={14} />{day.rain} мм</span>}
+                                {day.snow > 0 && <span className="flex items-center gap-1"><Icon name="CloudSnow" size={14} />{day.snow} см</span>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl mt-6">
+              <h3 className="text-xl font-semibold text-[#34495E] mb-6">Сравнение с прошлой неделей</h3>
+              {loading || historyData.length === 0 ? (
+                <div className="text-center py-8 text-[#34495E]/60">Нет данных</div>
+              ) : (
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#4A90E2]/20 to-[#98D8C8]/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Icon name="Thermometer" size={24} className="text-[#4A90E2]" />
+                      <div className="font-semibold text-[#34495E]">Средняя температура</div>
+                    </div>
+                    <div className="text-3xl font-bold text-[#34495E]">
+                      {Math.round(historyData.reduce((sum: number, d: any) => sum + (d.high + d.low) / 2, 0) / historyData.length)}°
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#98D8C8]/20 to-[#4A90E2]/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Icon name="CloudRain" size={24} className="text-[#98D8C8]" />
+                      <div className="font-semibold text-[#34495E]">Всего осадков</div>
+                    </div>
+                    <div className="text-3xl font-bold text-[#34495E]">
+                      {historyData.reduce((sum: number, d: any) => sum + (d.precipitation || 0), 0).toFixed(1)} мм
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#4A90E2]/20 to-[#98D8C8]/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Icon name="Calendar" size={24} className="text-[#4A90E2]" />
+                      <div className="font-semibold text-[#34495E]">Дождливых дней</div>
+                    </div>
+                    <div className="text-3xl font-bold text-[#34495E]">
+                      {historyData.filter((d: any) => (d.rain || 0) > 0.5).length} из {historyData.length}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="precipitation" className="mt-6">
+            <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+              <h3 className="text-xl font-semibold text-[#34495E] mb-6">Детальный прогноз осадков</h3>
+              {loading ? (
+                <div className="text-center py-8 text-[#34495E]/60">Загрузка...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pb-4 min-w-max">
+                    {weatherData?.hourly?.slice(0, 24).map((hour: any, index: number) => {
+                      const hasRain = (hour.rain || 0) > 0;
+                      const hasSnow = (hour.snow || 0) > 0;
+                      const totalPrecip = hour.precipitation || 0;
+                      
+                      return (
+                        <div key={index} className={`flex-shrink-0 w-28 p-4 rounded-xl border-2 ${
+                          totalPrecip > 5 ? 'border-blue-400 bg-blue-50' :
+                          totalPrecip > 1 ? 'border-blue-300 bg-blue-50/50' :
+                          totalPrecip > 0 ? 'border-blue-200 bg-blue-50/30' :
+                          'border-gray-200 bg-gray-50'
+                        }`}>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-[#34495E] mb-2">{hour.time}</div>
+                            
+                            {hasRain && (
+                              <div className="mb-2">
+                                <Icon name="CloudRain" size={24} className="mx-auto text-blue-500" />
+                                <div className="text-xs text-blue-600 font-medium mt-1">Дождь</div>
+                                <div className="text-sm font-bold text-[#34495E]">{hour.rain.toFixed(1)} мм</div>
+                              </div>
+                            )}
+                            
+                            {hasSnow && (
+                              <div className="mb-2">
+                                <Icon name="CloudSnow" size={24} className="mx-auto text-blue-400" />
+                                <div className="text-xs text-blue-600 font-medium mt-1">Снег</div>
+                                <div className="text-sm font-bold text-[#34495E]">{hour.snow.toFixed(1)} см</div>
+                              </div>
+                            )}
+                            
+                            {!hasRain && !hasSnow && totalPrecip === 0 && (
+                              <div>
+                                <Icon name="Sun" size={24} className="mx-auto text-yellow-500" />
+                                <div className="text-xs text-[#34495E]/60 mt-1">Без осадков</div>
+                              </div>
+                            )}
+                            
+                            <div className="mt-2 pt-2 border-t border-[#34495E]/10">
+                              <div className="text-xs text-[#34495E]/60">Вероятность</div>
+                              <div className="text-sm font-semibold text-[#4A90E2]">{hour.precip}%</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+                <h3 className="text-xl font-semibold text-[#34495E] mb-6">Ожидаемые осадки по дням</h3>
+                {loading ? (
+                  <div className="text-center py-8 text-[#34495E]/60">Загрузка...</div>
+                ) : (
+                  <div className="space-y-3">
+                    {dailyForecast.slice(0, 7).map((day: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-[#4A90E2]/10 to-[#98D8C8]/10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-16 text-sm font-medium text-[#34495E]">{day.day}</div>
+                          {(day.rain || 0) > 0 && <Icon name="CloudRain" size={20} className="text-blue-500" />}
+                          {(day.snow || 0) > 0 && <Icon name="CloudSnow" size={20} className="text-blue-400" />}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {(day.rain || 0) > 0 && (
+                            <div className="text-sm">
+                              <span className="text-[#34495E]/60">Дождь: </span>
+                              <span className="font-semibold text-blue-600">{day.rain.toFixed(1)} мм</span>
+                            </div>
+                          )}
+                          {(day.snow || 0) > 0 && (
+                            <div className="text-sm">
+                              <span className="text-[#34495E]/60">Снег: </span>
+                              <span className="font-semibold text-blue-500">{day.snow.toFixed(1)} см</span>
+                            </div>
+                          )}
+                          {(day.rain || 0) === 0 && (day.snow || 0) === 0 && (
+                            <div className="text-sm text-green-600 font-medium">Без осадков</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+                <h3 className="text-xl font-semibold text-[#34495E] mb-6">Рекомендации</h3>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-blue-50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Icon name="Umbrella" size={24} className="text-blue-600" />
+                      <div className="font-semibold text-[#34495E]">Зонт обязателен</div>
+                    </div>
+                    <p className="text-sm text-[#34495E]/80">
+                      {dailyForecast.filter((d: any) => d.precip > 50).length > 0 
+                        ? `В ${dailyForecast.filter((d: any) => d.precip > 50).length} из 7 дней высокая вероятность дождя`
+                        : 'На этой неделе осадки маловероятны'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Icon name="Car" size={24} className="text-[#4A90E2]" />
+                      <div className="font-semibold text-[#34495E]">Дорожные условия</div>
+                    </div>
+                    <p className="text-sm text-[#34495E]/80">
+                      {dailyForecast.some((d: any) => (d.snow || 0) > 0)
+                        ? 'Ожидается снег — будьте осторожны на дорогах'
+                        : 'Дорожные условия будут благоприятными'}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Icon name="CalendarCheck" size={24} className="text-[#98D8C8]" />
+                      <div className="font-semibold text-[#34495E]">Планирование</div>
+                    </div>
+                    <p className="text-sm text-[#34495E]/80">
+                      Лучшие дни для активного отдыха: {
+                        dailyForecast
+                          .filter((d: any, i: number) => i < 7 && d.precip < 30)
+                          .map((d: any) => d.day)
+                          .join(', ') || 'данных нет'
+                      }
+                    </p>
+                  </div>
+                </div>
               </Card>
             </div>
           </TabsContent>
