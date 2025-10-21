@@ -1,26 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
+const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
+
+interface Location {
+  name: string;
+  lat: number;
+  lon: number;
+  display_name: string;
+  country: string;
+  admin1?: string;
+}
 
 const Index = () => {
-  const [selectedCity, setSelectedCity] = useState('Москва');
+  const [selectedLocation, setSelectedLocation] = useState<Location>({
+    name: 'Москва',
+    lat: 55.7558,
+    lon: 37.6173,
+    display_name: 'Москва',
+    country: 'Россия'
+  });
   const [weatherData, setWeatherData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const cities = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург'];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Location[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const searchTimeout = useRef<NodeJS.Timeout>();
+  
+  const popularCities = [
+    { name: 'Москва', lat: 55.7558, lon: 37.6173 },
+    { name: 'Санкт-Петербург', lat: 59.9311, lon: 30.3609 },
+    { name: 'Новосибирск', lat: 55.0084, lon: 82.9357 },
+    { name: 'Екатеринбург', lat: 56.8389, lon: 60.6057 }
+  ];
 
   useEffect(() => {
-    fetchWeather(selectedCity);
-  }, [selectedCity]);
+    fetchWeather(selectedLocation.lat, selectedLocation.lon);
+  }, [selectedLocation]);
 
-  const fetchWeather = async (city: string) => {
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    searchTimeout.current = setTimeout(() => {
+      searchLocations(searchQuery);
+    }, 300);
+
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+    };
+  }, [searchQuery]);
+
+  const searchLocations = async (query: string) => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(`${GEOCODING_API_URL}?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      setSearchResults(data.results || []);
+    } catch (error) {
+      console.error('Failed to search locations:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`${WEATHER_API_URL}?city=${encodeURIComponent(city)}`);
+      const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}`);
       const data = await response.json();
       setWeatherData(data);
     } catch (error) {
@@ -28,6 +93,12 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectLocation = (location: Location) => {
+    setSelectedLocation(location);
+    setOpen(false);
+    setSearchQuery('');
   };
 
   const currentWeather = weatherData?.current || {
@@ -69,18 +140,84 @@ const Index = () => {
             <p className="text-white/80 text-lg">Прогноз погоды с нейросетевой точностью</p>
           </div>
           
-          <div className="flex gap-2 flex-wrap">
-            {cities.map((city) => (
-              <Button
-                key={city}
-                variant={selectedCity === city ? 'default' : 'secondary'}
-                onClick={() => setSelectedCity(city)}
-                className={selectedCity === city ? 'bg-white text-[#4A90E2] hover:bg-white/90' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'}
-              >
-                <Icon name="MapPin" size={16} className="mr-2" />
-                {city}
-              </Button>
-            ))}
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="secondary"
+                  role="combobox"
+                  aria-expanded={open}
+                  className="w-full md:w-[320px] justify-between bg-white/95 text-[#34495E] hover:bg-white backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Icon name="MapPin" size={16} />
+                    <span className="truncate">{selectedLocation.display_name}</span>
+                  </div>
+                  <Icon name="Search" size={16} className="ml-2 flex-shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[320px] p-0" align="end">
+                <Command shouldFilter={false}>
+                  <CommandInput 
+                    placeholder="Поиск города или села..." 
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
+                  />
+                  <CommandList>
+                    {searchQuery.length < 2 && (
+                      <CommandGroup heading="Популярные города">
+                        {popularCities.map((city) => (
+                          <CommandItem
+                            key={city.name}
+                            onSelect={() => selectLocation({
+                              name: city.name,
+                              lat: city.lat,
+                              lon: city.lon,
+                              display_name: city.name,
+                              country: 'Россия'
+                            })}
+                          >
+                            <Icon name="MapPin" size={14} className="mr-2" />
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    
+                    {isSearching && (
+                      <div className="py-6 text-center text-sm text-muted-foreground">
+                        Поиск...
+                      </div>
+                    )}
+                    
+                    {!isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
+                      <CommandEmpty>Ничего не найдено</CommandEmpty>
+                    )}
+                    
+                    {!isSearching && searchResults.length > 0 && (
+                      <CommandGroup heading="Результаты поиска">
+                        {searchResults.map((location, index) => (
+                          <CommandItem
+                            key={`${location.name}-${location.lat}-${index}`}
+                            onSelect={() => selectLocation(location)}
+                          >
+                            <Icon name="MapPin" size={14} className="mr-2" />
+                            <div className="flex flex-col">
+                              <span>{location.display_name}</span>
+                              {location.admin1 && (
+                                <span className="text-xs text-muted-foreground">
+                                  {location.admin1}{location.country && location.country !== 'Россия' ? `, ${location.country}` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 

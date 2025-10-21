@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Search for Moscow",
+      "method": "GET",
+      "path": "/?query=Москва",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Search for village",
+      "method": "GET",
+      "path": "/?query=Иваново",
+      "expectedStatus": 200
+    }
+  ]
+}
