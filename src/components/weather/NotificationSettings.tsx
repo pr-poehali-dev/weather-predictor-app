@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
+const TELEGRAM_BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на username вашего бота
 
 export default function NotificationSettings() {
   const { toast } = useToast();
@@ -168,18 +169,38 @@ export default function NotificationSettings() {
                 className="max-w-md"
               />
               
-              <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-[#34495E] mb-2">
-                  🤖 Настройте уведомления через бота:
-                </p>
-                <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
-                  <li>Напишите боту @ВашБотName команду /start</li>
-                  <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
-                  <li>Или используйте команды бота: /subscribe, /email</li>
-                </ol>
-                <p className="text-xs text-[#34495E]/50 mt-2">
-                  💡 Можно указать @username (например @ivan) или Chat ID (123456789)
-                </p>
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-[#34495E] mb-2">
+                    🤖 Настройте уведомления через бота:
+                  </p>
+                  <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
+                    <li>Нажмите кнопку ниже, чтобы открыть бота</li>
+                    <li>Напишите команду /start</li>
+                    <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
+                  </ol>
+                  <p className="text-xs text-[#34495E]/50 mt-2">
+                    💡 Можно указать @username (например @ivan) или Chat ID (123456789)
+                  </p>
+                  
+                  <div className="mt-3 p-2 bg-white/50 rounded border border-blue-300">
+                    <p className="text-xs font-medium text-[#34495E] mb-1">Команды бота:</p>
+                    <div className="text-xs text-[#34495E]/70 space-y-0.5">
+                      <div><code className="bg-white px-1 rounded">/subscribe</code> — подписаться</div>
+                      <div><code className="bg-white px-1 rounded">/email your@email.com</code> — добавить email</div>
+                      <div><code className="bg-white px-1 rounded">/settings</code> — посмотреть настройки</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={() => window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}`, '_blank')}
+                  className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white"
+                  size="sm"
+                >
+                  <Icon name="Send" size={16} className="mr-2" />
+                  Открыть бота в Telegram
+                </Button>
               </div>
             </div>
           )}

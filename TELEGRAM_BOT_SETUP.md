@@ -7,6 +7,19 @@
 3. Придумайте имя бота (например: "Волк Синоптик")
 4. Придумайте username (например: "volk_sinoptik_bot")
 5. **Скопируйте токен** — он понадобится для настройки
+6. **Скопируйте username бота** — добавьте его в код:
+
+Откройте файл `src/components/weather/NotificationSettings.tsx` и замените:
+
+```typescript
+const TELEGRAM_BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на ваш username
+```
+
+На:
+
+```typescript
+const TELEGRAM_BOT_USERNAME = 'volk_sinoptik_bot'; // Ваш username без @
+```
 
 Пример токена: `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`
 
