@@ -21,6 +21,12 @@
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Test bot status check",
+      "method": "GET",
+      "path": "/?action=bot-status",
+      "expectedStatus": 200
     }
   ]
 }

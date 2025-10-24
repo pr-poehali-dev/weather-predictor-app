@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
-const TELEGRAM_BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на username вашего бота
+const TELEGRAM_BOT_USERNAME = 'WolfWeatherForecaste_Bot';
 
 export default function NotificationSettings() {
   const { toast } = useToast();
@@ -37,7 +37,7 @@ export default function NotificationSettings() {
   const checkBotStatus = async () => {
     setBotStatus('checking');
     try {
-      const response = await fetch(`${NOTIFICATIONS_API}/bot-status`);
+      const response = await fetch(`${NOTIFICATIONS_API}?action=bot-status`);
       const data = await response.json();
       
       if (data.active) {

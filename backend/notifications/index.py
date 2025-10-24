@@ -75,7 +75,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Returns: HTTP response dict
     '''
     method: str = event.get('httpMethod', 'POST')
-    path_params = event.get('pathParams', {})
+    query_params = event.get('queryStringParameters', {})
     
     if method == 'OPTIONS':
         return {
@@ -90,7 +90,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    if method == 'GET' and path_params.get('proxy', '') == 'bot-status':
+    if method == 'GET' and query_params.get('action') == 'bot-status':
         return check_bot_status()
     
     if method != 'POST':
