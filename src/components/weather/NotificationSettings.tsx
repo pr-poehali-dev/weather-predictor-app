@@ -71,13 +71,12 @@ export default function NotificationSettings() {
       console.error('Bot status check failed:', error);
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
-      setBotStatus('error');
       
-      toast({
-        title: '⚠️ Ошибка проверки бота',
-        description: error.name === 'AbortError' ? 'Превышено время ожидания' : `Не удалось подключиться: ${error.message}`,
-        variant: 'destructive'
-      });
+      if (error.name === 'AbortError') {
+        setBotStatus('error');
+      } else {
+        setBotStatus('inactive');
+      }
     }
   };
 
