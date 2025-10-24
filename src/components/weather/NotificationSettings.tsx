@@ -159,7 +159,7 @@ export default function NotificationSettings() {
           </div>
 
           {settings.telegramEnabled && (
-            <div className="ml-4 pl-4 border-l-2 border-[#98D8C8]">
+            <div className="ml-4 pl-4 border-l-2 border-[#98D8C8] space-y-3">
               <Input
                 type="text"
                 placeholder="@username или Chat ID"
@@ -167,12 +167,20 @@ export default function NotificationSettings() {
                 onChange={(e) => setSettings({ ...settings, telegram: e.target.value })}
                 className="max-w-md"
               />
-              <p className="text-xs text-[#34495E]/60 mt-2">
-                💡 Можно указать @username (например @ivan) или Chat ID (123456789)
-              </p>
-              <p className="text-xs text-[#34495E]/40 mt-1">
-                Для @username сначала напишите боту любое сообщение
-              </p>
+              
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-medium text-[#34495E] mb-2">
+                  🤖 Настройте уведомления через бота:
+                </p>
+                <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
+                  <li>Напишите боту @ВашБотName команду /start</li>
+                  <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
+                  <li>Или используйте команды бота: /subscribe, /email</li>
+                </ol>
+                <p className="text-xs text-[#34495E]/50 mt-2">
+                  💡 Можно указать @username (например @ivan) или Chat ID (123456789)
+                </p>
+              </div>
             </div>
           )}
         </div>
