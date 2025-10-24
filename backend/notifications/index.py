@@ -116,11 +116,37 @@ def send_email(to_email: str, message: str, notification_type: str) -> Dict[str,
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
-def send_telegram(chat_id: str, message: str) -> Dict[str, Any]:
+def get_chat_id_from_username(bot_token: str, username: str) -> str:
+    username = username.lstrip('@')
+    
+    try:
+        url = f'https://api.telegram.org/bot{bot_token}/getUpdates'
+        req = urllib.request.Request(url)
+        
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            
+            if result.get('ok'):
+                for update in result.get('result', []):
+                    message = update.get('message', {})
+                    from_user = message.get('from', {})
+                    
+                    if from_user.get('username', '').lower() == username.lower():
+                        return str(from_user.get('id'))
+        
+        return username
+    except:
+        return username
+
+def send_telegram(telegram_input: str, message: str) -> Dict[str, Any]:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     
     if not bot_token:
         return {'success': False, 'error': 'Telegram bot token not configured'}
+    
+    chat_id = telegram_input
+    if telegram_input.startswith('@') or not telegram_input.isdigit():
+        chat_id = get_chat_id_from_username(bot_token, telegram_input)
     
     url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
     
@@ -139,6 +165,6 @@ def send_telegram(chat_id: str, message: str) -> Dict[str, Any]:
         
         with urllib.request.urlopen(req) as response:
             result = json.loads(response.read().decode('utf-8'))
-            return {'success': result.get('ok', False)}
+            return {'success': result.get('ok', False), 'chat_id': chat_id}
     except Exception as e:
         return {'success': False, 'error': str(e)}

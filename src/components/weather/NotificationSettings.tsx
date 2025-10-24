@@ -168,7 +168,10 @@ export default function NotificationSettings() {
                 className="max-w-md"
               />
               <p className="text-xs text-[#34495E]/60 mt-2">
-                Для получения Chat ID напишите боту @userinfobot
+                💡 Можно указать @username (например @ivan) или Chat ID (123456789)
+              </p>
+              <p className="text-xs text-[#34495E]/40 mt-1">
+                Для @username сначала напишите боту любое сообщение
               </p>
             </div>
           )}
