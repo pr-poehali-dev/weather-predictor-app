@@ -37,18 +37,47 @@ export default function NotificationSettings() {
   const checkBotStatus = async () => {
     setBotStatus('checking');
     try {
-      const response = await fetch(`${NOTIFICATIONS_API}?action=bot-status`);
+      console.log('Checking bot status at:', `${NOTIFICATIONS_API}?action=bot-status`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(`${NOTIFICATIONS_API}?action=bot-status`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      clearTimeout(timeoutId);
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Bot status data:', data);
       
       if (data.active) {
         setBotStatus('active');
         setBotInfo(data.bot);
+        console.log('Bot is active:', data.bot);
       } else {
         setBotStatus('inactive');
+        console.log('Bot is inactive, reason:', data.reason);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Bot status check failed:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
       setBotStatus('error');
+      
+      toast({
+        title: '⚠️ Ошибка проверки бота',
+        description: error.name === 'AbortError' ? 'Превышено время ожидания' : `Не удалось подключиться: ${error.message}`,
+        variant: 'destructive'
+      });
     }
   };
 
