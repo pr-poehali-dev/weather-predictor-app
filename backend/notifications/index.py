@@ -7,27 +7,91 @@ from typing import Dict, Any
 import urllib.request
 import urllib.parse
 
+def check_bot_status() -> Dict[str, Any]:
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    
+    if not bot_token:
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'active': False, 'reason': 'Token not configured'}),
+            'isBase64Encoded': False
+        }
+    
+    try:
+        url = f'https://api.telegram.org/bot{bot_token}/getMe'
+        req = urllib.request.Request(url)
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            
+            if result.get('ok'):
+                bot_info = result.get('result', {})
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({
+                        'active': True,
+                        'bot': {
+                            'username': bot_info.get('username'),
+                            'name': bot_info.get('first_name'),
+                            'id': bot_info.get('id')
+                        }
+                    }),
+                    'isBase64Encoded': False
+                }
+            else:
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'active': False, 'reason': 'Invalid token'}),
+                    'isBase64Encoded': False
+                }
+    except Exception as e:
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'active': False, 'reason': str(e)}),
+            'isBase64Encoded': False
+        }
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Отправка уведомлений о погоде и пыльце через Email и Telegram
-    Args: event - dict с httpMethod, body (email, telegram, message, type)
+    Args: event - dict с httpMethod, body (email, telegram, message, type), pathParams
           context - object с request_id
     Returns: HTTP response dict
     '''
     method: str = event.get('httpMethod', 'POST')
+    path_params = event.get('pathParams', {})
     
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
             'isBase64Encoded': False
         }
+    
+    if method == 'GET' and path_params.get('proxy', '') == 'bot-status':
+        return check_bot_status()
     
     if method != 'POST':
         return {

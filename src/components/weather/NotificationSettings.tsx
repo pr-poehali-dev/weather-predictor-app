@@ -12,6 +12,8 @@ const TELEGRAM_BOT_USERNAME = 'YOUR_BOT_USERNAME'; // Замените на user
 
 export default function NotificationSettings() {
   const { toast } = useToast();
+  const [botStatus, setBotStatus] = useState<'checking' | 'active' | 'inactive' | 'error'>('checking');
+  const [botInfo, setBotInfo] = useState<{ username?: string; name?: string } | null>(null);
   const [settings, setSettings] = useState({
     email: '',
     telegram: '',
@@ -25,11 +27,30 @@ export default function NotificationSettings() {
   });
 
   useEffect(() => {
+    checkBotStatus();
     const saved = localStorage.getItem('weatherNotifications');
     if (saved) {
       setSettings(JSON.parse(saved));
     }
   }, []);
+
+  const checkBotStatus = async () => {
+    setBotStatus('checking');
+    try {
+      const response = await fetch(`${NOTIFICATIONS_API}/bot-status`);
+      const data = await response.json();
+      
+      if (data.active) {
+        setBotStatus('active');
+        setBotInfo(data.bot);
+      } else {
+        setBotStatus('inactive');
+      }
+    } catch (error) {
+      console.error('Bot status check failed:', error);
+      setBotStatus('error');
+    }
+  };
 
   const handleSave = () => {
     if (settings.emailEnabled && !settings.email) {
@@ -103,15 +124,45 @@ export default function NotificationSettings() {
     }
   };
 
+  const getStatusDisplay = () => {
+    switch (botStatus) {
+      case 'checking':
+        return { color: 'bg-gray-400', text: 'Проверка...', icon: 'RefreshCw' };
+      case 'active':
+        return { color: 'bg-green-500', text: `Бот активен${botInfo?.username ? ` (@${botInfo.username})` : ''}`, icon: 'CheckCircle2' };
+      case 'inactive':
+        return { color: 'bg-yellow-500', text: 'Бот не настроен', icon: 'AlertCircle' };
+      case 'error':
+        return { color: 'bg-red-500', text: 'Ошибка подключения', icon: 'XCircle' };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
+
   return (
     <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-lg bg-gradient-to-br from-[#4A90E2] to-[#98D8C8]">
-          <Icon name="Bell" size={24} className="text-white" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-[#4A90E2] to-[#98D8C8]">
+            <Icon name="Bell" size={24} className="text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-[#34495E]">Уведомления</h3>
+            <p className="text-sm text-[#34495E]/60">Настройте оповещения о погоде и аллергенах</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-semibold text-[#34495E]">Уведомления</h3>
-          <p className="text-sm text-[#34495E]/60">Настройте оповещения о погоде и аллергенах</p>
+        
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-gray-200">
+          <div className={`w-2 h-2 rounded-full ${statusDisplay.color} ${botStatus === 'checking' ? 'animate-pulse' : ''}`} />
+          <Icon name={statusDisplay.icon} size={14} className="text-[#34495E]/70" />
+          <span className="text-xs font-medium text-[#34495E]">{statusDisplay.text}</span>
+          <button 
+            onClick={checkBotStatus}
+            className="ml-1 p-1 hover:bg-gray-100 rounded transition-colors"
+            title="Обновить статус"
+          >
+            <Icon name="RefreshCw" size={12} className="text-[#34495E]/50" />
+          </button>
         </div>
       </div>
 
@@ -169,39 +220,58 @@ export default function NotificationSettings() {
                 className="max-w-md"
               />
               
-              <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-[#34495E] mb-2">
-                    🤖 Настройте уведомления через бота:
-                  </p>
-                  <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
-                    <li>Нажмите кнопку ниже, чтобы открыть бота</li>
-                    <li>Напишите команду /start</li>
-                    <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
-                  </ol>
-                  <p className="text-xs text-[#34495E]/50 mt-2">
-                    💡 Можно указать @username (например @ivan) или Chat ID (123456789)
-                  </p>
-                  
-                  <div className="mt-3 p-2 bg-white/50 rounded border border-blue-300">
-                    <p className="text-xs font-medium text-[#34495E] mb-1">Команды бота:</p>
-                    <div className="text-xs text-[#34495E]/70 space-y-0.5">
-                      <div><code className="bg-white px-1 rounded">/subscribe</code> — подписаться</div>
-                      <div><code className="bg-white px-1 rounded">/email your@email.com</code> — добавить email</div>
-                      <div><code className="bg-white px-1 rounded">/settings</code> — посмотреть настройки</div>
+              {botStatus === 'inactive' && (
+                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Icon name="AlertCircle" size={16} className="text-yellow-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800 mb-1">
+                        ⚠️ Бот не настроен
+                      </p>
+                      <p className="text-xs text-yellow-700">
+                        Чтобы получать уведомления в Telegram, необходимо настроить бота. 
+                        Следуйте инструкции в файле <code className="bg-yellow-100 px-1 rounded">TELEGRAM_BOT_SETUP.md</code>
+                      </p>
                     </div>
                   </div>
                 </div>
-                
-                <Button
-                  onClick={() => window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}`, '_blank')}
-                  className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white"
-                  size="sm"
-                >
-                  <Icon name="Send" size={16} className="mr-2" />
-                  Открыть бота в Telegram
-                </Button>
-              </div>
+              )}
+              
+              {botStatus === 'active' && (
+                <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#34495E] mb-2">
+                      🤖 Настройте уведомления через бота:
+                    </p>
+                    <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
+                      <li>Нажмите кнопку ниже, чтобы открыть бота</li>
+                      <li>Напишите команду /start</li>
+                      <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
+                    </ol>
+                    <p className="text-xs text-[#34495E]/50 mt-2">
+                      💡 Можно указать @username (например @ivan) или Chat ID (123456789)
+                    </p>
+                    
+                    <div className="mt-3 p-2 bg-white/50 rounded border border-blue-300">
+                      <p className="text-xs font-medium text-[#34495E] mb-1">Команды бота:</p>
+                      <div className="text-xs text-[#34495E]/70 space-y-0.5">
+                        <div><code className="bg-white px-1 rounded">/subscribe</code> — подписаться</div>
+                        <div><code className="bg-white px-1 rounded">/email your@email.com</code> — добавить email</div>
+                        <div><code className="bg-white px-1 rounded">/settings</code> — посмотреть настройки</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    onClick={() => window.open(`https://t.me/${botInfo?.username || TELEGRAM_BOT_USERNAME}`, '_blank')}
+                    className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white"
+                    size="sm"
+                  >
+                    <Icon name="Send" size={16} className="mr-2" />
+                    Открыть бота в Telegram
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
