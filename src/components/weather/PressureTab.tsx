@@ -17,26 +17,6 @@ export default function PressureTab({ loading, weatherData }: PressureTabProps) 
     );
   }
 
-  const hourlyData = weatherData?.hourly || [];
-  const historyData = weatherData?.history || [];
-  
-  const allPressureData = [
-    ...historyData.map((day: any) => ({
-      time: new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
-      pressure: 0,
-      isHistory: true
-    })),
-    ...hourlyData.slice(0, 48).map((hour: any, index: number) => {
-      const date = new Date();
-      date.setHours(date.getHours() + index);
-      return {
-        time: date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-        pressure: 0,
-        isHistory: false
-      };
-    })
-  ];
-
   if (!weatherData?.current?.pressure) {
     return (
       <Card className="p-8 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
@@ -48,15 +28,35 @@ export default function PressureTab({ loading, weatherData }: PressureTabProps) 
   }
 
   const currentPressureMmHg = Math.round(weatherData.current.pressure * 0.750062);
+  const dailyForecast = weatherData?.daily || [];
+  const hourlyData = weatherData?.hourly || [];
   
-  const minPressure = 720;
-  const maxPressure = 780;
+  const hourlyPressure = hourlyData.slice(0, 48).map((hour: any) => ({
+    time: hour.time,
+    pressure: hour.pressure ? Math.round(hour.pressure * 0.750062) : 0
+  })).filter((h: any) => h.pressure > 0);
+
+  const dailyPressure = dailyForecast.map((day: any) => ({
+    day: day.day,
+    pressureMax: day.pressureMax ? Math.round(day.pressureMax * 0.750062) : 0,
+    pressureMin: day.pressureMin ? Math.round(day.pressureMin * 0.750062) : 0
+  })).filter((d: any) => d.pressureMax > 0);
+
+  const allPressures = [
+    currentPressureMmHg,
+    ...hourlyPressure.map((h: any) => h.pressure),
+    ...dailyPressure.flatMap((d: any) => [d.pressureMax, d.pressureMin])
+  ].filter(p => p > 0);
+
+  const minPressure = Math.min(...allPressures) - 5;
+  const maxPressure = Math.max(...allPressures) + 5;
   const pressureRange = maxPressure - minPressure;
+  const avgPressure = Math.round(allPressures.reduce((a, b) => a + b, 0) / allPressures.length);
 
   const getPressureStatus = (pressure: number) => {
-    if (pressure < 735) return { text: 'Низкое', color: 'text-blue-600' };
-    if (pressure < 755) return { text: 'Нормальное', color: 'text-green-600' };
-    return { text: 'Высокое', color: 'text-orange-600' };
+    if (pressure < 735) return { text: 'Низкое', color: 'text-blue-600', bg: 'bg-blue-100' };
+    if (pressure < 755) return { text: 'Нормальное', color: 'text-green-600', bg: 'bg-green-100' };
+    return { text: 'Высокое', color: 'text-orange-600', bg: 'bg-orange-100' };
   };
 
   const status = getPressureStatus(currentPressureMmHg);
@@ -70,7 +70,7 @@ export default function PressureTab({ loading, weatherData }: PressureTabProps) 
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[#34495E]">Атмосферное давление</h2>
-            <p className="text-[#34495E]/60">Текущее и прогноз</p>
+            <p className="text-[#34495E]/60">Текущее и прогноз на 2 недели</p>
           </div>
         </div>
 
@@ -92,29 +92,64 @@ export default function PressureTab({ loading, weatherData }: PressureTabProps) 
           </Card>
 
           <Card className="p-6 bg-gradient-to-br from-[#4A90E2]/10 to-[#98D8C8]/10 border-0">
-            <div className="text-sm text-[#34495E]/60 mb-2">Норма</div>
-            <div className="text-4xl font-bold text-[#34495E] mb-2">745</div>
+            <div className="text-sm text-[#34495E]/60 mb-2">Среднее за период</div>
+            <div className="text-4xl font-bold text-[#34495E] mb-2">{avgPressure}</div>
             <div className="text-sm text-[#34495E]/80">мм рт.ст.</div>
           </Card>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-[#34495E] mb-4">График давления (48 часов)</h3>
-          
-          <div className="relative h-64 bg-white/50 rounded-xl p-4">
-            <div className="absolute inset-0 flex items-center justify-center text-[#34495E]/40 text-sm">
-              График будет доступен после добавления данных о давлении в API
+        {hourlyPressure.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-[#34495E] mb-4">Почасовой прогноз (24 часа)</h3>
+            <div className="grid grid-cols-8 gap-2">
+              {hourlyPressure.slice(0, 24).map((hour: any, index: number) => {
+                const hourStatus = getPressureStatus(hour.pressure);
+                return (
+                  <div key={index} className={`p-3 rounded-lg ${hourStatus.bg} text-center`}>
+                    <div className="text-xs text-[#34495E]/60 mb-1">{hour.time}</div>
+                    <div className={`text-sm font-bold ${hourStatus.color}`}>{hour.pressure}</div>
+                  </div>
+                );
+              })}
             </div>
-            
-            <div className="absolute left-4 top-0 bottom-0 flex flex-col justify-between text-xs text-[#34495E]/60">
-              <span>{maxPressure}</span>
-              <span>{minPressure + pressureRange * 0.66}</span>
-              <span>{minPressure + pressureRange * 0.33}</span>
-              <span>{minPressure}</span>
-            </div>
-
-            <div className="absolute bottom-4 left-16 right-4 border-t border-[#34495E]/20"></div>
           </div>
+        )}
+      </Card>
+
+      <Card className="p-8 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+        <h3 className="text-xl font-semibold text-[#34495E] mb-6">Прогноз на 14 дней</h3>
+        
+        <div className="space-y-3">
+          {dailyPressure.map((day: any, index: number) => {
+            const avgDayPressure = Math.round((day.pressureMax + day.pressureMin) / 2);
+            const dayStatus = getPressureStatus(avgDayPressure);
+            
+            return (
+              <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 transition-colors">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-24 font-semibold text-[#34495E]">{day.day}</div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${dayStatus.bg} ${dayStatus.color}`}>
+                    {dayStatus.text}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <div className="text-xs text-[#34495E]/60 mb-1">Макс</div>
+                    <div className="text-lg font-bold text-[#34495E]">{day.pressureMax}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-[#34495E]/60 mb-1">Мин</div>
+                    <div className="text-lg font-bold text-[#34495E]">{day.pressureMin}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-[#34495E]/60 mb-1">Средн</div>
+                    <div className={`text-lg font-bold ${dayStatus.color}`}>{avgDayPressure}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

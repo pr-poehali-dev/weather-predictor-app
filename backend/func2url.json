@@ -1,7 +1,3 @@
 {
-  "geocoding": "https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a",
-  "weather": "https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470",
-  "air-quality": "https://functions.poehali.dev/fe7bc55e-5d6e-4c25-a2bf-2fd682293e6a",
-  "telegram-bot": "https://functions.poehali.dev/d4ed1a0op79hvtlrabg9",
-  "notifications": "https://functions.poehali.dev/d4e04ensjcstu96t1phn"
+  "weather": "https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470"
 }
