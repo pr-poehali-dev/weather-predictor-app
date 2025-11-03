@@ -48,7 +48,15 @@ const Index = () => {
     { name: 'Москва', lat: 55.7558, lon: 37.6173 },
     { name: 'Санкт-Петербург', lat: 59.9311, lon: 30.3609 },
     { name: 'Новосибирск', lat: 55.0084, lon: 82.9357 },
-    { name: 'Екатеринбург', lat: 56.8389, lon: 60.6057 }
+    { name: 'Екатеринбург', lat: 56.8389, lon: 60.6057 },
+    { name: 'Казань', lat: 55.7887, lon: 49.1221 },
+    { name: 'Нижний Новгород', lat: 56.3287, lon: 44.0020 },
+    { name: 'Челябинск', lat: 55.1644, lon: 61.4368 },
+    { name: 'Самара', lat: 53.2001, lon: 50.1500 },
+    { name: 'Омск', lat: 54.9885, lon: 73.3242 },
+    { name: 'Ростов-на-Дону', lat: 47.2357, lon: 39.7015 },
+    { name: 'Уфа', lat: 54.7388, lon: 55.9721 },
+    { name: 'Красноярск', lat: 56.0153, lon: 92.8932 }
   ];
 
   useEffect(() => {
@@ -57,8 +65,28 @@ const Index = () => {
   }, [selectedLocation]);
 
   useEffect(() => {
-    if (searchQuery.length < 2) {
+    if (searchQuery.length === 0) {
       setSearchResults([]);
+      return;
+    }
+
+    if (searchQuery.length >= 1) {
+      const matches = popularCities.filter(city => 
+        city.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      if (matches.length > 0) {
+        setSearchResults(matches.map(city => ({
+          name: city.name,
+          lat: city.lat,
+          lon: city.lon,
+          display_name: city.name,
+          country: 'Россия'
+        })));
+      }
+    }
+
+    if (searchQuery.length < 2) {
       return;
     }
 
@@ -68,7 +96,7 @@ const Index = () => {
 
     searchTimeout.current = setTimeout(() => {
       searchLocations(searchQuery);
-    }, 300);
+    }, 150);
 
     return () => {
       if (searchTimeout.current) {
@@ -138,7 +166,7 @@ const Index = () => {
               name: 'Моё местоположение',
               lat,
               lon,
-              display_name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+              display_name: 'Моё местоположение',
               country: ''
             });
           }
@@ -148,7 +176,7 @@ const Index = () => {
             name: 'Моё местоположение',
             lat,
             lon,
-            display_name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+            display_name: 'Моё местоположение',
             country: ''
           });
         } finally {
