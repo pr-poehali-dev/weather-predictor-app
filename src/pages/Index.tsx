@@ -265,10 +265,12 @@ const Index = () => {
     return directions[Math.round(deg / 45) % 8];
   };
 
+  const pressureMmHg = Math.round(currentWeather.pressure * 0.750062);
+  
   const weatherMetrics = [
     { label: 'Влажность', value: `${currentWeather.humidity}%`, icon: 'Droplets' },
     { label: 'Ветер', value: `${currentWeather.windSpeed} км/ч ${getWindDirection(currentWeather.windDirection)}`, icon: 'Wind' },
-    { label: 'Давление', value: `${currentWeather.pressure} мбар`, icon: 'Gauge' },
+    { label: 'Давление', value: `${pressureMmHg} мм рт.ст.`, icon: 'Gauge' },
     { label: 'Облачность', value: `${currentWeather.cloudCover}%`, icon: 'Cloud' },
     { label: 'Осадки', value: `${currentWeather.precipitation} мм`, icon: 'CloudRain' }
   ];
