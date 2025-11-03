@@ -1,10 +1,31 @@
 {
   "tests": [
     {
-      "name": "Get weather for Moscow",
+      "name": "Get Moscow weather",
       "method": "GET",
-      "path": "/?city=Москва",
-      "expectedStatus": 200
+      "path": "/?lat=55.7558&lon=37.6173",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "current": {
+          "temp": "number",
+          "condition": "string",
+          "humidity": "number"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get Amsterdam weather",
+      "method": "GET",
+      "path": "/?lat=52.37125&lon=4.89388",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "current": {
+          "temp": "number",
+          "icon": "string"
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
