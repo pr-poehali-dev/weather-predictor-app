@@ -74,23 +74,18 @@ const Index = () => {
       return;
     }
 
-    if (searchQuery.length >= 1) {
+    if (searchQuery.length < 2) {
       const matches = popularCities.filter(city => 
         city.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       
-      if (matches.length > 0) {
-        setSearchResults(matches.map(city => ({
-          name: city.name,
-          lat: city.lat,
-          lon: city.lon,
-          display_name: city.name,
-          country: 'Россия'
-        })));
-      }
-    }
-
-    if (searchQuery.length < 2) {
+      setSearchResults(matches.map(city => ({
+        name: city.name,
+        lat: city.lat,
+        lon: city.lon,
+        display_name: city.name,
+        country: 'Россия'
+      })));
       return;
     }
 
