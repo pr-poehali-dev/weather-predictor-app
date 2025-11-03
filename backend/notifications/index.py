@@ -69,7 +69,7 @@ def check_bot_status() -> Dict[str, Any]:
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Отправка уведомлений о погоде и пыльце через Email и Telegram
+    Business: Отправка уведомлений о погоде и пыльце через Email и Telegram, проверка статуса бота
     Args: event - dict с httpMethod, body (email, telegram, message, type), pathParams
           context - object с request_id
     Returns: HTTP response dict

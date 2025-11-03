@@ -1,7 +1,7 @@
 """
 Business: Get real weather data for a city using Open-Meteo API
 Args: event with httpMethod, queryStringParameters (city, lat, lon)
-Returns: HTTP response with weather data including temperature, conditions, sun times
+Returns: HTTP response with weather data including temperature, conditions, sun times, hourly and daily forecasts
 """
 
 import json
