@@ -12,6 +12,7 @@ import PrecipitationTab from '@/components/weather/PrecipitationTab';
 import AnalyticsTab from '@/components/weather/AnalyticsTab';
 import NotificationSettings from '@/components/weather/NotificationSettings';
 import SynopticMap from '@/components/weather/SynopticMap';
+import PressureTab from '@/components/weather/PressureTab';
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
@@ -326,6 +327,10 @@ const Index = () => {
               <Icon name="CloudRain" size={16} className="mr-2" />
               Осадки
             </TabsTrigger>
+            <TabsTrigger value="pressure" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="Gauge" size={16} className="mr-2" />
+              Давление
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
               <Icon name="LineChart" size={16} className="mr-2" />
               Аналитика
@@ -354,6 +359,10 @@ const Index = () => {
 
           <TabsContent value="precipitation" className="mt-6">
             <PrecipitationTab loading={loading} weatherData={weatherData} dailyForecast={dailyForecast} />
+          </TabsContent>
+
+          <TabsContent value="pressure" className="mt-6">
+            <PressureTab loading={loading} weatherData={weatherData} />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
