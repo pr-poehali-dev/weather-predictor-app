@@ -13,10 +13,11 @@ import AnalyticsTab from '@/components/weather/AnalyticsTab';
 
 import SynopticMap from '@/components/weather/SynopticMap';
 import PressureTab from '@/components/weather/PressureTab';
+import NotificationSettings from '@/components/weather/NotificationSettings';
 
-const OPEN_METEO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
-const OPEN_METEO_GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
-const OPEN_METEO_AIR_QUALITY_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality';
+const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
+const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
+const AIR_QUALITY_API_URL = 'https://functions.poehali.dev/fe7bc55e-5d6e-4c25-a2bf-2fd682293e6a';
 
 interface Location {
   name: string;
@@ -154,19 +155,9 @@ const Index = () => {
   const searchLocations = async (query: string) => {
     setIsSearching(true);
     try {
-      const response = await fetch(`${OPEN_METEO_GEOCODING_URL}?name=${encodeURIComponent(query)}&count=10&language=ru&format=json`);
+      const response = await fetch(`${GEOCODING_API_URL}?query=${encodeURIComponent(query)}`);
       const data = await response.json();
-      
-      const results = (data.results || []).map((location: any) => ({
-        name: location.name,
-        lat: location.latitude,
-        lon: location.longitude,
-        display_name: `${location.name}${location.admin1 ? ', ' + location.admin1 : ''}${location.country ? ', ' + location.country : ''}`,
-        country: location.country || '',
-        admin1: location.admin1 || ''
-      }));
-      
-      setSearchResults(results);
+      setSearchResults(data.results || []);
     } catch (error) {
       console.error('Failed to search locations:', error);
       setSearchResults([]);
@@ -178,62 +169,9 @@ const Index = () => {
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        latitude: lat.toString(),
-        longitude: lon.toString(),
-        current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m',
-        hourly: 'temperature_2m,precipitation_probability,precipitation,weather_code,pressure_msl,wind_speed_10m',
-        daily: 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,sunshine_duration,precipitation_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,pressure_msl_max,pressure_msl_min',
-        timezone: 'auto',
-        forecast_days: 14
-      });
-      
-      const response = await fetch(`${OPEN_METEO_WEATHER_URL}?${params}`);
+      const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}`);
       const data = await response.json();
-      
-      const transformedData = {
-        current: {
-          temperature: data.current.temperature_2m,
-          feelsLike: data.current.apparent_temperature,
-          humidity: data.current.relative_humidity_2m,
-          precipitation: data.current.precipitation,
-          weatherCode: data.current.weather_code,
-          cloudCover: data.current.cloud_cover,
-          pressure: data.current.pressure_msl,
-          windSpeed: data.current.wind_speed_10m,
-          windDirection: data.current.wind_direction_10m,
-          isDay: data.current.is_day
-        },
-        hourly: data.hourly.time.slice(0, 48).map((time: string, i: number) => ({
-          time: new Date(time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          temperature: data.hourly.temperature_2m[i],
-          precipitation: data.hourly.precipitation_probability[i],
-          precipitationAmount: data.hourly.precipitation[i],
-          weatherCode: data.hourly.weather_code[i],
-          pressure: data.hourly.pressure_msl[i],
-          windSpeed: data.hourly.wind_speed_10m[i]
-        })),
-        daily: data.daily.time.map((date: string, i: number) => ({
-          day: new Date(date).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }),
-          date: date,
-          weatherCode: data.daily.weather_code[i],
-          tempMax: data.daily.temperature_2m_max[i],
-          tempMin: data.daily.temperature_2m_min[i],
-          feelsLikeMax: data.daily.apparent_temperature_max[i],
-          feelsLikeMin: data.daily.apparent_temperature_min[i],
-          sunrise: data.daily.sunrise[i],
-          sunset: data.daily.sunset[i],
-          precipitationSum: data.daily.precipitation_sum[i],
-          precipitationHours: data.daily.precipitation_hours[i],
-          precipitationProbability: data.daily.precipitation_probability_max[i],
-          windSpeedMax: data.daily.wind_speed_10m_max[i],
-          windGustsMax: data.daily.wind_gusts_10m_max[i],
-          pressureMax: data.daily.pressure_msl_max[i],
-          pressureMin: data.daily.pressure_msl_min[i]
-        }))
-      };
-      
-      setWeatherData(transformedData);
+      setWeatherData(data);
     } catch (error) {
       console.error('Failed to fetch weather:', error);
     } finally {
@@ -243,49 +181,9 @@ const Index = () => {
 
   const fetchAirQuality = async (lat: number, lon: number) => {
     try {
-      const params = new URLSearchParams({
-        latitude: lat.toString(),
-        longitude: lon.toString(),
-        current: 'european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,uv_index,ammonia,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen',
-        hourly: 'pm10,pm2_5,alder_pollen,birch_pollen,grass_pollen,ragweed_pollen,mugwort_pollen,olive_pollen',
-        timezone: 'auto',
-        forecast_days: 7
-      });
-      
-      const response = await fetch(`${OPEN_METEO_AIR_QUALITY_URL}?${params}`);
+      const response = await fetch(`${AIR_QUALITY_API_URL}?lat=${lat}&lon=${lon}`);
       const data = await response.json();
-      
-      const transformedData = {
-        current: {
-          aqi: data.current.european_aqi,
-          pm10: data.current.pm10,
-          pm25: data.current.pm2_5,
-          co: data.current.carbon_monoxide,
-          no2: data.current.nitrogen_dioxide,
-          so2: data.current.sulphur_dioxide,
-          o3: data.current.ozone,
-          dust: data.current.dust,
-          uvIndex: data.current.uv_index,
-          ammonia: data.current.ammonia,
-          alder: data.current.alder_pollen || 0,
-          birch: data.current.birch_pollen || 0,
-          grass: data.current.grass_pollen || 0,
-          mugwort: data.current.mugwort_pollen || 0,
-          olive: data.current.olive_pollen || 0,
-          ragweed: data.current.ragweed_pollen || 0
-        },
-        hourly: data.hourly.time.map((time: string, i: number) => ({
-          time: new Date(time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          alder: data.hourly.alder_pollen?.[i] || 0,
-          birch: data.hourly.birch_pollen?.[i] || 0,
-          grass: data.hourly.grass_pollen?.[i] || 0,
-          ragweed: data.hourly.ragweed_pollen?.[i] || 0,
-          mugwort: data.hourly.mugwort_pollen?.[i] || 0,
-          olive: data.hourly.olive_pollen?.[i] || 0
-        }))
-      };
-      
-      setAirQualityData(transformedData);
+      setAirQualityData(data);
     } catch (error) {
       console.error('Failed to fetch air quality:', error);
     }
@@ -303,14 +201,34 @@ const Index = () => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         
-        setSelectedLocation({
-          name: 'Моё местоположение',
-          lat,
-          lon,
-          display_name: 'Моё местоположение',
-          country: ''
-        });
-        setGeolocating(false);
+        try {
+          const response = await fetch(`${GEOCODING_API_URL}?query=${lat},${lon}`);
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            const location = data.results[0];
+            setSelectedLocation(location);
+          } else {
+            setSelectedLocation({
+              name: 'Моё местоположение',
+              lat,
+              lon,
+              display_name: 'Моё местоположение',
+              country: ''
+            });
+          }
+        } catch (error) {
+          console.error('Failed to reverse geocode:', error);
+          setSelectedLocation({
+            name: 'Моё местоположение',
+            lat,
+            lon,
+            display_name: 'Моё местоположение',
+            country: ''
+          });
+        } finally {
+          setGeolocating(false);
+        }
       },
       (error) => {
         console.error('Geolocation error:', error);
@@ -418,7 +336,10 @@ const Index = () => {
               <Icon name="LineChart" size={16} className="mr-2" />
               Аналитика
             </TabsTrigger>
-
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
+              <Icon name="Bell" size={16} className="mr-2" />
+              Уведомления
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="hourly" className="mt-6">
@@ -449,7 +370,9 @@ const Index = () => {
             <AnalyticsTab loading={loading} dailyForecast={dailyForecast} />
           </TabsContent>
 
-
+          <TabsContent value="notifications" className="mt-6">
+            <NotificationSettings />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
