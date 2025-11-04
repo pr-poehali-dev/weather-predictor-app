@@ -6,9 +6,18 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { Slider } from '@/components/ui/slider';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
 const TELEGRAM_BOT_USERNAME = 'WolfWeatherForecaste_Bot';
+
+const POLLEN_TYPES = [
+  { id: 'birch', label: 'Берёза', icon: 'TreeDeciduous' },
+  { id: 'grass', label: 'Злаковые травы', icon: 'Wheat' },
+  { id: 'ragweed', label: 'Амброзия', icon: 'Flower2' },
+  { id: 'tree', label: 'Деревья', icon: 'Trees' },
+  { id: 'weed', label: 'Сорные травы', icon: 'Sprout' },
+];
 
 export default function NotificationSettings() {
   const { toast } = useToast();
@@ -19,9 +28,25 @@ export default function NotificationSettings() {
     telegram: '',
     emailEnabled: false,
     telegramEnabled: false,
+    
     pollenHigh: true,
     pollenMedium: false,
+    pollenTypes: {
+      birch: true,
+      grass: true,
+      ragweed: true,
+      tree: false,
+      weed: false,
+    },
+    
     weatherAlert: true,
+    precipitationEnabled: false,
+    minPrecipitation: 0.1,
+    
+    pressureEnabled: false,
+    minPressure: 730,
+    maxPressure: 770,
+    
     dailyForecast: false,
     dailyForecastTime: '08:00'
   });
@@ -30,15 +55,18 @@ export default function NotificationSettings() {
     checkBotStatus();
     const saved = localStorage.getItem('weatherNotifications');
     if (saved) {
-      setSettings(JSON.parse(saved));
+      const parsedSettings = JSON.parse(saved);
+      setSettings({
+        ...settings,
+        ...parsedSettings,
+        pollenTypes: parsedSettings.pollenTypes || settings.pollenTypes,
+      });
     }
   }, []);
 
   const checkBotStatus = async () => {
     setBotStatus('checking');
     try {
-      console.log('Checking bot status at:', `${NOTIFICATIONS_API}?action=bot-status`);
-      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
@@ -50,28 +78,19 @@ export default function NotificationSettings() {
       });
       clearTimeout(timeoutId);
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Bot status data:', data);
       
       if (data.active) {
         setBotStatus('active');
         setBotInfo(data.bot);
-        console.log('Bot is active:', data.bot);
       } else {
         setBotStatus('inactive');
-        console.log('Bot is inactive, reason:', data.reason);
       }
     } catch (error: any) {
-      console.error('Bot status check failed:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      
       if (error.name === 'AbortError') {
         setBotStatus('error');
       } else {
@@ -239,163 +258,256 @@ export default function NotificationSettings() {
           </div>
 
           {settings.telegramEnabled && (
-            <div className="ml-4 pl-4 border-l-2 border-[#98D8C8] space-y-3">
+            <div className="ml-4 pl-4 border-l-2 border-[#98D8C8] space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-[#34495E] mb-3 flex items-center gap-2">
+                  <Icon name="Info" size={16} className="text-[#4A90E2]" />
+                  <span className="font-medium">Как получить Telegram ID:</span>
+                </p>
+                <ol className="text-sm text-[#34495E]/80 space-y-2 ml-6 list-decimal">
+                  <li>
+                    Откройте бота{' '}
+                    <a 
+                      href={`https://t.me/${TELEGRAM_BOT_USERNAME}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#4A90E2] hover:underline font-medium"
+                    >
+                      @{TELEGRAM_BOT_USERNAME}
+                    </a>
+                  </li>
+                  <li>Нажмите <strong>Start</strong> или отправьте команду <code className="px-1.5 py-0.5 bg-white rounded text-xs">/start</code></li>
+                  <li>Бот пришлет ваш ID — скопируйте его и вставьте ниже</li>
+                </ol>
+              </div>
+              
               <Input
                 type="text"
-                placeholder="@username или Chat ID"
+                placeholder="Ваш Telegram ID (например: 123456789)"
                 value={settings.telegram}
                 onChange={(e) => setSettings({ ...settings, telegram: e.target.value })}
                 className="max-w-md"
               />
-              
-              {botStatus === 'inactive' && (
-                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300 space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Icon name="AlertCircle" size={16} className="text-yellow-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-yellow-800 mb-1">
-                        ⚠️ Бот не настроен
-                      </p>
-                      <p className="text-xs text-yellow-700">
-                        Чтобы получать уведомления в Telegram, необходимо настроить бота. 
-                        Следуйте инструкции в файле <code className="bg-yellow-100 px-1 rounded">TELEGRAM_BOT_SETUP.md</code>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {botStatus === 'active' && (
-                <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-[#34495E] mb-2">
-                      🤖 Настройте уведомления через бота:
-                    </p>
-                    <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
-                      <li>Нажмите кнопку ниже, чтобы открыть бота</li>
-                      <li>Напишите команду /start</li>
-                      <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
-                    </ol>
-                    <p className="text-xs text-[#34495E]/50 mt-2">
-                      💡 Можно указать @username (например @ivan) или Chat ID (123456789)
-                    </p>
-                    
-                    <div className="mt-3 p-2 bg-white/50 rounded border border-blue-300">
-                      <p className="text-xs font-medium text-[#34495E] mb-1">Команды бота:</p>
-                      <div className="text-xs text-[#34495E]/70 space-y-0.5">
-                        <div><code className="bg-white px-1 rounded">/subscribe</code> — подписаться</div>
-                        <div><code className="bg-white px-1 rounded">/email your@email.com</code> — добавить email</div>
-                        <div><code className="bg-white px-1 rounded">/settings</code> — посмотреть настройки</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={() => window.open(`https://t.me/${botInfo?.username || TELEGRAM_BOT_USERNAME}`, '_blank')}
-                    className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white"
-                    size="sm"
-                  >
-                    <Icon name="Send" size={16} className="mr-2" />
-                    Открыть бота в Telegram
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </div>
 
-        <div className="pt-4 border-t border-[#34495E]/10">
-          <h4 className="font-semibold text-[#34495E] mb-4">Типы уведомлений</h4>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-red-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="AlertTriangle" size={18} className="text-red-500" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Высокий уровень пыльцы</div>
-                  <div className="text-xs text-[#34495E]/60">Индекс {'>'} 9.0</div>
-                </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+
+        <div className="space-y-4">
+          <h4 className="font-semibold text-[#34495E] flex items-center gap-2">
+            <Icon name="Settings" size={18} className="text-[#4A90E2]" />
+            Условия для уведомлений
+          </h4>
+
+          <div className="space-y-3 bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-lg border-2 border-amber-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="AlertTriangle" size={18} className="text-amber-600" />
+                <Label className="font-medium text-[#34495E]">Высокий уровень пыльцы</Label>
               </div>
               <Switch
                 checked={settings.pollenHigh}
                 onCheckedChange={(checked) => setSettings({ ...settings, pollenHigh: checked })}
               />
             </div>
+            <p className="text-xs text-[#34495E]/60 ml-6">Индекс > 9.0</p>
+          </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-yellow-50 transition-colors">
-              <div className="flex items-center gap-3">
+          <div className="space-y-3 bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg border-2 border-yellow-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <Icon name="AlertCircle" size={18} className="text-yellow-600" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Средний уровень пыльцы</div>
-                  <div className="text-xs text-[#34495E]/60">Индекс 4.0-9.0</div>
-                </div>
+                <Label className="font-medium text-[#34495E]">Средний уровень пыльцы</Label>
               </div>
               <Switch
                 checked={settings.pollenMedium}
                 onCheckedChange={(checked) => setSettings({ ...settings, pollenMedium: checked })}
               />
             </div>
+            <p className="text-xs text-[#34495E]/60 ml-6">Индекс 4.0-9.0</p>
+          </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-orange-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="CloudRain" size={18} className="text-orange-600" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Экстремальная погода</div>
-                  <div className="text-xs text-[#34495E]/60">Штормы, метели, ураганы</div>
+          {(settings.pollenHigh || settings.pollenMedium) && (
+            <div className="ml-4 pl-4 border-l-2 border-amber-300 space-y-3">
+              <p className="text-sm font-medium text-[#34495E] mb-2">Выберите аллергены:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {POLLEN_TYPES.map((pollen) => (
+                  <div 
+                    key={pollen.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-white hover:bg-amber-50 transition-colors border border-gray-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon name={pollen.icon} size={16} className="text-amber-600" />
+                      <span className="text-sm text-[#34495E]">{pollen.label}</span>
+                    </div>
+                    <Switch
+                      checked={settings.pollenTypes[pollen.id as keyof typeof settings.pollenTypes]}
+                      onCheckedChange={(checked) => 
+                        setSettings({ 
+                          ...settings, 
+                          pollenTypes: { ...settings.pollenTypes, [pollen.id]: checked } 
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="CloudRain" size={18} className="text-blue-600" />
+                <Label className="font-medium text-[#34495E]">Осадки</Label>
+              </div>
+              <Switch
+                checked={settings.precipitationEnabled}
+                onCheckedChange={(checked) => setSettings({ ...settings, precipitationEnabled: checked })}
+              />
+            </div>
+            
+            {settings.precipitationEnabled && (
+              <div className="mt-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#34495E]/70">Минимальное количество осадков:</span>
+                  <span className="font-medium text-[#34495E]">{settings.minPrecipitation} мм</span>
                 </div>
+                <Slider
+                  value={[settings.minPrecipitation]}
+                  onValueChange={(value) => setSettings({ ...settings, minPrecipitation: value[0] })}
+                  min={0.1}
+                  max={10}
+                  step={0.1}
+                  className="w-full"
+                />
+                <p className="text-xs text-[#34495E]/60">
+                  {settings.minPrecipitation < 1 ? 'Слабый дождь' : 
+                   settings.minPrecipitation < 3 ? 'Умеренный дождь' : 
+                   settings.minPrecipitation < 6 ? 'Сильный дождь' : 'Очень сильный дождь'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3 bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="Gauge" size={18} className="text-purple-600" />
+                <Label className="font-medium text-[#34495E]">Атмосферное давление</Label>
+              </div>
+              <Switch
+                checked={settings.pressureEnabled}
+                onCheckedChange={(checked) => setSettings({ ...settings, pressureEnabled: checked })}
+              />
+            </div>
+            
+            {settings.pressureEnabled && (
+              <div className="mt-4 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#34495E]/70">Минимальное давление:</span>
+                    <span className="font-medium text-[#34495E]">{settings.minPressure} мм рт.ст.</span>
+                  </div>
+                  <Slider
+                    value={[settings.minPressure]}
+                    onValueChange={(value) => setSettings({ ...settings, minPressure: value[0] })}
+                    min={700}
+                    max={780}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#34495E]/70">Максимальное давление:</span>
+                    <span className="font-medium text-[#34495E]">{settings.maxPressure} мм рт.ст.</span>
+                  </div>
+                  <Slider
+                    value={[settings.maxPressure]}
+                    onValueChange={(value) => setSettings({ ...settings, maxPressure: value[0] })}
+                    min={700}
+                    max={780}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <p className="text-xs text-[#34495E]/60 bg-white p-2 rounded border border-purple-200">
+                  Уведомление придет, если давление выйдет за пределы {settings.minPressure}-{settings.maxPressure} мм рт.ст.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3 bg-gradient-to-br from-red-50 to-orange-50 p-4 rounded-lg border-2 border-red-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="Cloud" size={18} className="text-red-600" />
+                <Label className="font-medium text-[#34495E]">Экстремальная погода</Label>
               </div>
               <Switch
                 checked={settings.weatherAlert}
                 onCheckedChange={(checked) => setSettings({ ...settings, weatherAlert: checked })}
               />
             </div>
+            <p className="text-xs text-[#34495E]/60 ml-6">Штормы, метели, ураганы</p>
+          </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Icon name="Calendar" size={18} className="text-blue-600" />
-                  <div>
-                    <div className="font-medium text-[#34495E]">Ежедневный прогноз</div>
-                    <div className="text-xs text-[#34495E]/60">Выберите время получения прогноза</div>
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.dailyForecast}
-                  onCheckedChange={(checked) => setSettings({ ...settings, dailyForecast: checked })}
+          <div className="space-y-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="Calendar" size={18} className="text-green-600" />
+                <Label className="font-medium text-[#34495E]">Ежедневный прогноз</Label>
+              </div>
+              <Switch
+                checked={settings.dailyForecast}
+                onCheckedChange={(checked) => setSettings({ ...settings, dailyForecast: checked })}
+              />
+            </div>
+            
+            {settings.dailyForecast && (
+              <div className="ml-6 mt-3">
+                <Label className="text-sm text-[#34495E]/70 mb-2 block">Время отправки:</Label>
+                <Input
+                  type="time"
+                  value={settings.dailyForecastTime}
+                  onChange={(e) => setSettings({ ...settings, dailyForecastTime: e.target.value })}
+                  className="max-w-[150px]"
                 />
               </div>
-              {settings.dailyForecast && (
-                <div className="ml-12 flex items-center gap-3">
-                  <Label htmlFor="forecast-time" className="text-sm text-[#34495E]">Время:</Label>
-                  <Input
-                    id="forecast-time"
-                    type="time"
-                    value={settings.dailyForecastTime}
-                    onChange={(e) => setSettings({ ...settings, dailyForecastTime: e.target.value })}
-                    className="w-32"
-                  />
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4">
           <Button 
-            onClick={handleSave}
+            onClick={handleSave} 
             className="flex-1 bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90"
           >
             <Icon name="Save" size={18} className="mr-2" />
             Сохранить настройки
           </Button>
+          
           <Button 
             onClick={handleTestNotification}
             variant="outline"
-            className="flex-1"
+            className="border-[#4A90E2] text-[#4A90E2] hover:bg-[#4A90E2]/10"
           >
             <Icon name="Send" size={18} className="mr-2" />
-            Тест уведомления
+            Тест
           </Button>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+          <p className="text-sm text-[#34495E] flex items-start gap-2">
+            <Icon name="Info" size={16} className="text-[#4A90E2] mt-0.5 flex-shrink-0" />
+            <span>
+              Уведомления работают автоматически. Вы получите оповещение, когда любое из выбранных условий будет выполнено.
+            </span>
+          </p>
         </div>
       </div>
     </Card>
