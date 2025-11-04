@@ -14,6 +14,7 @@ import AnalyticsTab from '@/components/weather/AnalyticsTab';
 import SynopticMap from '@/components/weather/SynopticMap';
 import PressureTab from '@/components/weather/PressureTab';
 import NotificationSettings from '@/components/weather/NotificationSettings';
+import { notificationService } from '@/services/notificationService';
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
@@ -172,6 +173,10 @@ const Index = () => {
       const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}`);
       const data = await response.json();
       setWeatherData(data);
+      
+      if (data && airQualityData) {
+        notificationService.checkAllConditions(data, airQualityData);
+      }
     } catch (error) {
       console.error('Failed to fetch weather:', error);
     } finally {
@@ -184,6 +189,10 @@ const Index = () => {
       const response = await fetch(`${AIR_QUALITY_API_URL}?lat=${lat}&lon=${lon}`);
       const data = await response.json();
       setAirQualityData(data);
+      
+      if (data && weatherData) {
+        notificationService.checkAllConditions(weatherData, data);
+      }
     } catch (error) {
       console.error('Failed to fetch air quality:', error);
     }
