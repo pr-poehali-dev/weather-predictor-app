@@ -287,8 +287,8 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#4A90E2] via-[#7EC8E3] to-[#98D8C8] p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-[#4A90E2] via-[#7EC8E3] to-[#98D8C8] p-3 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
         <WeatherHeader
           selectedLocation={selectedLocation}
           searchQuery={searchQuery}
@@ -316,38 +316,41 @@ const Index = () => {
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
         <Tabs defaultValue="hourly" className="w-full">
-          <TabsList className="bg-white/20 backdrop-blur-sm border-0 p-1">
-            <TabsTrigger value="hourly" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="Clock" size={16} className="mr-2" />
-              Почасовой прогноз
+          <TabsList className="bg-white/20 backdrop-blur-sm border-0 p-1 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1 h-auto">
+            <TabsTrigger value="hourly" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="Clock" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span className="hidden md:inline">Почасовой прогноз</span>
+              <span className="md:hidden">По часам</span>
             </TabsTrigger>
-            <TabsTrigger value="daily" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="Calendar" size={16} className="mr-2" />
-              10 дней
+            <TabsTrigger value="daily" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="Calendar" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span>10 дней</span>
             </TabsTrigger>
-            <TabsTrigger value="pollen" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="Flower2" size={16} className="mr-2" />
-              Аллергены по часам
+            <TabsTrigger value="pollen" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="Flower2" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span className="hidden md:inline">Аллергены по часам</span>
+              <span className="md:hidden">Аллергены</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="History" size={16} className="mr-2" />
-              История
+            <TabsTrigger value="history" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="History" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span>История</span>
             </TabsTrigger>
-            <TabsTrigger value="precipitation" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="CloudRain" size={16} className="mr-2" />
-              Осадки
+            <TabsTrigger value="precipitation" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="CloudRain" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span>Осадки</span>
             </TabsTrigger>
-            <TabsTrigger value="pressure" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="Gauge" size={16} className="mr-2" />
-              Давление
+            <TabsTrigger value="pressure" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="Gauge" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span>Давление</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="LineChart" size={16} className="mr-2" />
-              Аналитика
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="LineChart" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span>Аналитика</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2]">
-              <Icon name="Bell" size={16} className="mr-2" />
-              Уведомления
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-[#4A90E2] text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5">
+              <Icon name="Bell" size={16} className="md:mr-2 mb-1 md:mb-0" />
+              <span className="hidden md:inline">Уведомления</span>
+              <span className="md:hidden">Алерты</span>
             </TabsTrigger>
           </TabsList>
 

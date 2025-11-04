@@ -12,20 +12,20 @@ export default function AirQualityCard({ airQualityData }: AirQualityCardProps) 
   }
 
   return (
-    <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-[#98D8C8] to-[#4A90E2]">
-            <Icon name="Wind" size={24} className="text-white" />
+    <Card className="p-4 md:p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 mb-4 md:mb-6">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-[#98D8C8] to-[#4A90E2]">
+            <Icon name="Wind" size={20} className="text-white md:w-6 md:h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[#34495E]">Качество воздуха и аллергены</h3>
-            <p className="text-sm text-[#34495E]/60">Индекс качества воздуха: {airQualityData.aqi?.value || 0} — {airQualityData.aqi?.level}</p>
+            <h3 className="text-base md:text-lg font-semibold text-[#34495E]">Качество воздуха и аллергены</h3>
+            <p className="text-xs md:text-sm text-[#34495E]/60">Индекс: {airQualityData.aqi?.value || 0} — {airQualityData.aqi?.level}</p>
           </div>
         </div>
         <Badge 
           variant="secondary" 
-          className={`text-sm ${
+          className={`text-xs md:text-sm self-start md:self-auto ${
             airQualityData.aqi?.color === 'green' ? 'bg-green-100 text-green-700' :
             airQualityData.aqi?.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
             airQualityData.aqi?.color === 'orange' ? 'bg-orange-100 text-orange-700' :
@@ -37,27 +37,27 @@ export default function AirQualityCard({ airQualityData }: AirQualityCardProps) 
         </Badge>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         {Object.entries(airQualityData.allergens || {}).map(([key, allergen]: [string, any]) => (
           <div 
             key={key} 
-            className={`p-4 rounded-xl border-2 ${
+            className={`p-3 md:p-4 rounded-xl border-2 ${
               allergen.risk === 'very_high' ? 'border-red-300 bg-red-50' :
               allergen.risk === 'high' ? 'border-orange-300 bg-orange-50' :
               allergen.risk === 'medium' ? 'border-yellow-300 bg-yellow-50' :
               'border-green-300 bg-green-50'
             }`}
           >
-            <div className="flex flex-col items-center text-center gap-2">
-              <Icon name={allergen.icon} size={32} className={`${
+            <div className="flex flex-col items-center text-center gap-1.5 md:gap-2">
+              <Icon name={allergen.icon} size={24} className={`md:w-8 md:h-8 ${
                 allergen.risk === 'very_high' ? 'text-red-600' :
                 allergen.risk === 'high' ? 'text-orange-600' :
                 allergen.risk === 'medium' ? 'text-yellow-600' :
                 'text-green-600'
               }`} />
               <div>
-                <div className="font-semibold text-[#34495E] text-sm">{allergen.name}</div>
-                <div className="text-xs text-[#34495E]/60 mb-1">{allergen.bloomPeriod}</div>
+                <div className="font-semibold text-[#34495E] text-xs md:text-sm">{allergen.name}</div>
+                <div className="text-[10px] md:text-xs text-[#34495E]/60 mb-1">{allergen.bloomPeriod}</div>
                 <div className={`text-xs font-medium ${
                   allergen.risk === 'very_high' ? 'text-red-600' :
                   allergen.risk === 'high' ? 'text-orange-600' :
