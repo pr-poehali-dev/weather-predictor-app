@@ -311,7 +311,7 @@ export default function NotificationSettings() {
                 onCheckedChange={(checked) => setSettings({ ...settings, pollenHigh: checked })}
               />
             </div>
-            <p className="text-xs text-[#34495E]/60 ml-6">Индекс > 9.0</p>
+            <p className="text-xs text-[#34495E]/60 ml-6">Индекс {'>'} 9.0</p>
           </div>
 
           <div className="space-y-3 bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-lg border-2 border-yellow-200">
@@ -325,7 +325,7 @@ export default function NotificationSettings() {
                 onCheckedChange={(checked) => setSettings({ ...settings, pollenMedium: checked })}
               />
             </div>
-            <p className="text-xs text-[#34495E]/60 ml-6">Индекс 4.0-9.0</p>
+            <p className="text-xs text-[#34495E]/60 ml-6">Индекс 4.0–9.0</p>
           </div>
 
           {(settings.pollenHigh || settings.pollenMedium) && (
