@@ -12,15 +12,15 @@ export default function AirQualityCard({ airQualityData }: AirQualityCardProps) 
   }
 
   return (
-    <Card className="p-4 md:p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+    <Card className="p-4 md:p-6 bg-white/95 dark:bg-[#1e2936]/95 backdrop-blur-sm border-0 shadow-xl transition-colors duration-300">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 mb-4 md:mb-6">
         <div className="flex items-center gap-2 md:gap-3">
           <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-[#98D8C8] to-[#4A90E2]">
             <Icon name="Wind" size={20} className="text-white md:w-6 md:h-6" />
           </div>
           <div>
-            <h3 className="text-base md:text-lg font-semibold text-[#34495E]">Качество воздуха и аллергены</h3>
-            <p className="text-xs md:text-sm text-[#34495E]/60">Индекс: {airQualityData.aqi?.value || 0} — {airQualityData.aqi?.level}</p>
+            <h3 className="text-base md:text-lg font-semibold text-[#34495E] dark:text-white">Качество воздуха и аллергены</h3>
+            <p className="text-xs md:text-sm text-[#34495E]/60 dark:text-white/60">Индекс: {airQualityData.aqi?.value || 0} — {airQualityData.aqi?.level}</p>
           </div>
         </div>
         <Badge 
@@ -56,8 +56,8 @@ export default function AirQualityCard({ airQualityData }: AirQualityCardProps) 
                 'text-green-600'
               }`} />
               <div>
-                <div className="font-semibold text-[#34495E] text-xs md:text-sm">{allergen.name}</div>
-                <div className="text-[10px] md:text-xs text-[#34495E]/60 mb-1">{allergen.bloomPeriod}</div>
+                <div className="font-semibold text-[#34495E] dark:text-[#34495E] text-xs md:text-sm">{allergen.name}</div>
+                <div className="text-[10px] md:text-xs text-[#34495E]/60 dark:text-[#34495E]/80 mb-1">{allergen.bloomPeriod}</div>
                 <div className={`text-xs font-medium ${
                   allergen.risk === 'very_high' ? 'text-red-600' :
                   allergen.risk === 'high' ? 'text-orange-600' :

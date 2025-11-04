@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import Icon from '@/components/ui/icon';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface Location {
   name: string;
@@ -135,6 +136,7 @@ export default function WeatherHeader({
         >
           <Icon name={geolocating ? "Loader2" : "MapPinned"} size={16} className={geolocating ? "animate-spin" : ""} />
         </Button>
+        <ThemeToggle />
       </div>
     </div>
   );
