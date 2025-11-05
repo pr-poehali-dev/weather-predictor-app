@@ -16,22 +16,22 @@ export default function DailyForecastTab({ loading, dailyForecast }: DailyForeca
         ) : (
           <div className="space-y-3">
             {dailyForecast.map((day: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/10 to-[#98D8C8]/10 dark:from-[#4A90E2]/20 dark:to-[#98D8C8]/20 hover:from-[#4A90E2]/15 hover:to-[#98D8C8]/15 dark:hover:from-[#4A90E2]/25 dark:hover:to-[#98D8C8]/25 transition-all">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-20 font-medium text-[#34495E] dark:text-white">{day.day}</div>
-                  <Icon name={day.icon} size={32} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
-                  <div className="text-sm text-[#34495E]/70 dark:text-white/70 flex-1">{day.condition}</div>
+              <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/10 to-[#98D8C8]/10 dark:from-[#4A90E2]/20 dark:to-[#98D8C8]/20 hover:from-[#4A90E2]/15 hover:to-[#98D8C8]/15 dark:hover:from-[#4A90E2]/25 dark:hover:to-[#98D8C8]/25 transition-all">
+                <div className="flex items-center gap-3 flex-1 w-full">
+                  <div className="min-w-[60px] font-medium text-[#34495E] dark:text-white">{day.day}</div>
+                  <Icon name={day.icon} size={28} className="text-[#4A90E2] dark:text-[#7EC8E3] flex-shrink-0" />
+                  <div className="text-sm text-[#34495E]/70 dark:text-white/70 flex-1 truncate">{day.condition}</div>
                 </div>
                 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
                   <div className="flex items-center gap-2">
                     <Icon name="Droplets" size={16} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
                     <span className="text-sm text-[#34495E] dark:text-white">{day.precip}%</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-red-500">{day.high}°</span>
-                    <span className="text-[#34495E]/40">/</span>
-                    <span className="text-lg font-bold text-blue-500">{day.low}°</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-red-500 dark:text-red-400">{day.high}°</span>
+                    <span className="text-[#34495E]/40 dark:text-white/40">/</span>
+                    <span className="text-lg font-bold text-blue-500 dark:text-blue-400">{day.low}°</span>
                   </div>
                 </div>
               </div>
