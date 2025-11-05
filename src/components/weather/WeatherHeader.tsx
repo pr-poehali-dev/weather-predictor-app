@@ -60,7 +60,7 @@ export default function WeatherHeader({
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-full md:w-[300px] justify-between bg-white/95 text-[#34495E] hover:bg-white backdrop-blur-sm"
+                className="w-full md:w-[300px] justify-between bg-white/95 dark:bg-white text-[#34495E] hover:bg-white backdrop-blur-sm"
               >
                 <div className="flex items-center gap-2">
                   <Icon name="MapPin" size={16} />
@@ -131,7 +131,7 @@ export default function WeatherHeader({
           size="icon"
           onClick={getCurrentLocation}
           disabled={geolocating}
-          className="bg-white/95 text-[#34495E] hover:bg-white backdrop-blur-sm"
+          className="bg-white/95 dark:bg-white text-[#34495E] hover:bg-white backdrop-blur-sm"
           title="Моё местоположение"
         >
           <Icon name={geolocating ? "Loader2" : "MapPinned"} size={16} className={geolocating ? "animate-spin" : ""} />

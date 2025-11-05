@@ -30,7 +30,7 @@ export default function PollenForecastTab({ loading, airQualityData, weatherData
                     'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
                   }`}>
                     <div className="text-center">
-                      <div className="text-sm font-semibold text-[#34495E] dark:text-white mb-2">
+                      <div className="text-sm font-bold text-[#34495E] dark:text-white mb-2">
                         {hourTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <div className={`text-xs font-medium mb-3 ${
@@ -46,38 +46,38 @@ export default function PollenForecastTab({ loading, airQualityData, weatherData
                       <div className="space-y-1.5 text-xs">
                         {hour.alder > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Ольха</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.alder)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Ольха</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.alder)}</span>
                           </div>
                         )}
                         {hour.birch > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Берёза</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.birch)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Берёза</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.birch)}</span>
                           </div>
                         )}
                         {hour.grass > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Злаки</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.grass)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Злаки</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.grass)}</span>
                           </div>
                         )}
                         {hour.mugwort > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Полынь</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.mugwort)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Полынь</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.mugwort)}</span>
                           </div>
                         )}
                         {hour.olive > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Олива</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.olive)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Олива</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.olive)}</span>
                           </div>
                         )}
                         {hour.ragweed > 0 && (
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#34495E]/60 dark:text-white/60">Амброзия</span>
-                            <span className="font-semibold text-[#34495E] dark:text-white">{Math.round(hour.ragweed)}</span>
+                            <span className="text-[#34495E]/70 dark:text-white/80">Амброзия</span>
+                            <span className="font-bold text-[#34495E] dark:text-white">{Math.round(hour.ragweed)}</span>
                           </div>
                         )}
                         {maxPollen === 0 && (
@@ -122,22 +122,22 @@ export default function PollenForecastTab({ loading, airQualityData, weatherData
             </div>
             
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/30 dark:to-[#98D8C8]/30">
                 <div className="flex items-center gap-3 mb-3">
                   <Icon name="MapPin" size={24} className="text-[#4A90E2]" />
                   <div className="font-semibold text-[#34495E] dark:text-white">Зона риска</div>
                 </div>
-                <p className="text-sm text-[#34495E]/80 dark:text-white/60">
+                <p className="text-sm text-[#34495E]/80 dark:text-white/80">
                   Пыльца распространяется в северо-восточном направлении. Наибольшая концентрация ожидается в радиусе 5-10 км от центра города.
                 </p>
               </div>
               
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
                 <div className="flex items-center gap-3 mb-3">
                   <Icon name="Info" size={24} className="text-[#98D8C8]" />
                   <div className="font-semibold text-[#34495E] dark:text-white">Рекомендации</div>
                 </div>
-                <ul className="text-sm text-[#34495E]/80 dark:text-white/60 space-y-2">
+                <ul className="text-sm text-[#34495E]/80 dark:text-white/80 space-y-2">
                   <li>• Избегайте прогулок в парках с 10:00 до 16:00</li>
                   <li>• Держите окна закрытыми в утренние часы</li>
                   <li>• Используйте очиститель воздуха в помещении</li>
