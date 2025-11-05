@@ -349,8 +349,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="notifications" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1e2936] data-[state=active]:text-[#4A90E2] dark:data-[state=active]:text-[#7EC8E3] text-white/90 dark:text-white/70 text-xs md:text-sm flex-col md:flex-row py-2 md:py-1.5 transition-colors">
               <Icon name="Bell" size={16} className="md:mr-2 mb-1 md:mb-0" />
-              <span className="hidden md:inline">Уведомления</span>
-              <span className="md:hidden">Алерты</span>
+              <span>Уведомления</span>
             </TabsTrigger>
           </TabsList>
 
