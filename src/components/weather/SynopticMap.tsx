@@ -144,42 +144,45 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
   const currentTime = weatherData?.hourly?.[timeIndex]?.time || 'Загрузка...';
 
   return (
-    <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="p-6 bg-white/95 dark:bg-[#1e2936]/95 backdrop-blur-sm border-0 shadow-xl overflow-hidden">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-[#4A90E2] to-[#98D8C8]">
             <Icon name="Map" size={24} className="text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-[#34495E]">Синоптическая карта</h3>
-            <p className="text-sm text-[#34495E]/60">Время: {currentTime}</p>
+            <h3 className="text-xl font-semibold text-[#34495E] dark:text-white">Синоптическая карта</h3>
+            <p className="text-sm text-[#34495E]/60 dark:text-white/60">Время: {currentTime}</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={layerType === 'wind' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setLayerType('wind')}
+            className="flex-shrink-0"
           >
-            <Icon name="Wind" size={16} className="mr-2" />
-            Ветер
+            <Icon name="Wind" size={16} className="mr-1" />
+            <span className="hidden sm:inline">Ветер</span>
           </Button>
           <Button
             variant={layerType === 'rain' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setLayerType('rain')}
+            className="flex-shrink-0"
           >
-            <Icon name="CloudRain" size={16} className="mr-2" />
-            Дождь
+            <Icon name="CloudRain" size={16} className="mr-1" />
+            <span className="hidden sm:inline">Дождь</span>
           </Button>
           <Button
             variant={layerType === 'pollen' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setLayerType('pollen')}
+            className="flex-shrink-0"
           >
-            <Icon name="Flower2" size={16} className="mr-2" />
-            Пыльца
+            <Icon name="Flower2" size={16} className="mr-1" />
+            <span className="hidden sm:inline">Пыльца</span>
           </Button>
         </div>
       </div>
@@ -188,7 +191,7 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
         ref={canvasRef}
         width={800}
         height={500}
-        className="w-full h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD]"
+        className="w-full h-auto max-h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD] dark:bg-[#2a3f5f]"
       />
 
       <div className="space-y-4">
@@ -215,18 +218,18 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
             />
           </div>
 
-          <div className="text-sm font-semibold text-[#34495E] min-w-[80px] text-right">
+          <div className="text-sm font-semibold text-[#34495E] dark:text-white min-w-[60px] text-right">
             {timeIndex + 1} / {maxHours}
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-[#34495E]/60">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm gap-3">
+          <div className="flex items-center gap-2 text-[#34495E]/60 dark:text-white/60">
             <Icon name="Info" size={16} />
             <span>🐺 — ваше местоположение GPS</span>
           </div>
           {layerType === 'wind' && (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-1 bg-[#4A90E2]"></div>
                 <span className="text-xs">{'<'}15 км/ч</span>
