@@ -102,13 +102,19 @@ export default function PressureTab({ loading, weatherData }: PressureTabProps) 
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-[#34495E] dark:text-white mb-4">Почасовой прогноз (24 часа)</h3>
             <div className="overflow-x-auto -mx-6 px-6">
-              <div className="flex gap-2 pb-4 min-w-max">
+              <div className="flex gap-3 pb-4 min-w-max">
                 {hourlyPressure.slice(0, 24).map((hour: any, index: number) => {
                   const hourStatus = getPressureStatus(hour.pressure);
                   return (
-                    <div key={index} className={`flex-shrink-0 w-20 p-3 rounded-lg ${hourStatus.bg} text-center`}>
-                      <div className="text-xs text-[#34495E]/60 dark:text-white/60 mb-1">{hour.time}</div>
-                      <div className={`text-sm font-bold ${hourStatus.color}`}>{hour.pressure}</div>
+                    <div key={index} className={`flex-shrink-0 w-28 p-4 rounded-xl border-2 ${hourStatus.bg === 'bg-blue-100' ? 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' : hourStatus.bg === 'bg-green-100' ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700'}`}>
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-[#34495E]/60 dark:text-white/60 mb-2">{hour.time}</div>
+                        <div className={`text-2xl font-bold mb-1 ${hourStatus.color}`}>{hour.pressure}</div>
+                        <div className="text-xs text-[#34495E]/70 dark:text-white/70">мм рт.ст.</div>
+                        <div className={`mt-2 px-2 py-1 rounded-full text-xs font-medium ${hourStatus.bg} ${hourStatus.color}`}>
+                          {hourStatus.text}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
