@@ -73,40 +73,40 @@ export default function AirQualityCard({ airQualityData }: AirQualityCardProps) 
       </div>
 
       {airQualityData.pollutants && (
-        <div className="mt-6 pt-6 border-t border-[#34495E]/10">
-          <h4 className="text-sm font-semibold text-[#34495E]/70 mb-3">Загрязняющие вещества</h4>
+        <div className="mt-6 pt-6 border-t border-[#34495E]/10 dark:border-white/10">
+          <h4 className="text-sm font-semibold text-[#34495E]/70 dark:text-white mb-3">Загрязняющие вещества</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">PM2.5</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.pm25} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">PM2.5</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.pm25} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">PM10</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.pm10} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">PM10</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.pm10} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">NO₂</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.no2} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">NO₂</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.no2} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">O₃</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.o3} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">O₃</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.o3} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">CO</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.co} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">CO</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.co} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">SO₂</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.so2} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">SO₂</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.so2} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">Пыль</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.dust} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">Пыль</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.dust} µg/m³</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10">
-              <div className="text-xs text-[#34495E]/60">NH₃</div>
-              <div className="font-semibold text-[#34495E]">{airQualityData.pollutants.ammonia} µg/m³</div>
+            <div className="text-center p-3 rounded-lg bg-[#4A90E2]/10 dark:bg-[#4A90E2]/30">
+              <div className="text-xs font-medium text-[#34495E]/70 dark:text-white/80 mb-1">NH₃</div>
+              <div className="font-bold text-[#34495E] dark:text-white">{airQualityData.pollutants.ammonia} µg/m³</div>
             </div>
           </div>
         </div>
