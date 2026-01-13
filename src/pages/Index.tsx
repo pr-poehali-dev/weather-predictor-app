@@ -10,6 +10,7 @@ import PollenForecastTab from '@/components/weather/PollenForecastTab';
 import WeatherHistoryTab from '@/components/weather/WeatherHistoryTab';
 import PrecipitationTab from '@/components/weather/PrecipitationTab';
 import AnalyticsTab from '@/components/weather/AnalyticsTab';
+import ApiKeySettings from '@/components/ApiKeySettings';
 
 import SynopticMap from '@/components/weather/SynopticMap';
 import PressureTab from '@/components/weather/PressureTab';
@@ -312,6 +313,8 @@ const Index = () => {
         />
 
         <AirQualityCard airQualityData={airQualityData} />
+
+        <ApiKeySettings />
 
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
