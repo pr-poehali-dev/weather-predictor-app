@@ -155,6 +155,7 @@ Chat ID: {chat_id}
 def setup_webhook() -> Dict[str, Any]:
     '''Настройка webhook для Telegram бота'''
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    print(f'Setting up webhook with token: {bot_token[:20]}...')
     
     if not bot_token:
         return {
