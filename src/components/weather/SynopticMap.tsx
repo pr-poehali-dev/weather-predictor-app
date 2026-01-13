@@ -67,8 +67,8 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     ctx.fillStyle = '#34495E';
     ctx.fillText(selectedLocation.name, centerX, centerY + 50);
 
-    const windSpeed = hourData.windSpeed || 0;
-    const windDeg = hourData.windDirection || 0;
+    const baseWindSpeed = hourData.windSpeed || 0;
+    const baseWindDeg = hourData.windDirection || 0;
     const rain = hourData.rain || 0;
 
     const gridSize = 80;
@@ -76,6 +76,8 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     const cols = 7;
     const startX = (canvas.width - cols * gridSize) / 2;
     const startY = (canvas.height - rows * gridSize) / 2;
+
+    console.log('Wind data:', { baseWindSpeed, baseWindDeg, timeIndex, hourData });
 
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
@@ -85,6 +87,12 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
         if (Math.abs(x - centerX) < 50 && Math.abs(y - centerY) < 50) continue;
 
         if (layerType === 'wind') {
+          const distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+          const variation = (i * cols + j) * 15;
+          
+          const windSpeed = Math.max(baseWindSpeed + (Math.sin(variation) * 5), 0);
+          const windDeg = baseWindDeg + (Math.cos(variation) * 30);
+          
           const angle = (windDeg - 90) * (Math.PI / 180);
           const arrowLength = Math.max(Math.min(windSpeed * 1.5, 40), 15);
           
