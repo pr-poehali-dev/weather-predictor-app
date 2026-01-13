@@ -19,6 +19,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if method == 'GET' and query_params.get('action') == 'set-webhook':
         return setup_webhook()
     
+    # Get webhook info
+    if method == 'GET' and query_params.get('action') == 'get-webhook':
+        return get_webhook_info()
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -151,6 +155,51 @@ Chat ID: {chat_id}
         return '''🤔 Не понял команду.
 
 Используйте /help для списка команд или /start для начала.'''
+
+def get_webhook_info() -> Dict[str, Any]:
+    '''Получение информации о текущем webhook'''
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    
+    if not bot_token:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'TELEGRAM_BOT_TOKEN not configured'}),
+            'isBase64Encoded': False
+        }
+    
+    url = f'https://api.telegram.org/bot{bot_token}/getWebhookInfo'
+    
+    try:
+        req = urllib.request.Request(url)
+        
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            print(f'Webhook info: {result}')
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(result),
+                'isBase64Encoded': False
+            }
+    except Exception as e:
+        print(f'Get webhook info error: {str(e)}')
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }
 
 def setup_webhook() -> Dict[str, Any]:
     '''Настройка webhook для Telegram бота'''
