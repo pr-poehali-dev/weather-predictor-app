@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
+// v2.0 - Canvas visualization without Leaflet
 interface SynopticMapProps {
   selectedLocation: {
     lat: number;
