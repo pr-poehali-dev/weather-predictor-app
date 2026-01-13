@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import NotificationChannels from './NotificationChannels';
 import PollenNotifications from './PollenNotifications';
 import WeatherNotifications from './WeatherNotifications';
+import GeomagneticNotifications from './GeomagneticNotifications';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
 const TELEGRAM_BOT_API = 'https://functions.poehali.dev/f03fce2f-ec26-44b9-8491-2ec4d99f6a01';
@@ -38,6 +39,9 @@ export default function NotificationSettings() {
     pressureEnabled: false,
     minPressure: 730,
     maxPressure: 770,
+    
+    geomagneticEnabled: false,
+    minKIndex: 5,
     
     dailyForecast: false,
     dailyForecastTime: '08:00'
@@ -260,6 +264,13 @@ export default function NotificationSettings() {
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <WeatherNotifications 
+            settings={settings}
+            onSettingsChange={setSettings}
+          />
+        </div>
+
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <GeomagneticNotifications 
             settings={settings}
             onSettingsChange={setSettings}
           />

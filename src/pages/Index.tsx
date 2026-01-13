@@ -4,6 +4,7 @@ import Icon from '@/components/ui/icon';
 import WeatherHeader from '@/components/weather/WeatherHeader';
 import CurrentWeather from '@/components/weather/CurrentWeather';
 import AirQualityCard from '@/components/weather/AirQualityCard';
+import GeomagneticCard from '@/components/weather/GeomagneticCard';
 import HourlyForecastTab from '@/components/weather/HourlyForecastTab';
 import DailyForecastTab from '@/components/weather/DailyForecastTab';
 import PollenForecastTab from '@/components/weather/PollenForecastTab';
@@ -38,6 +39,7 @@ const Index = () => {
   });
   const [weatherData, setWeatherData] = useState<any>(null);
   const [airQualityData, setAirQualityData] = useState<any>(null);
+  const [geomagneticData, setGeomagneticData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Location[]>([]);
@@ -106,6 +108,7 @@ const Index = () => {
   useEffect(() => {
     fetchWeather(selectedLocation.lat, selectedLocation.lon);
     fetchAirQuality(selectedLocation.lat, selectedLocation.lon);
+    fetchGeomagneticData();
   }, [selectedLocation]);
 
   useEffect(() => {
@@ -194,6 +197,51 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Failed to fetch air quality:', error);
+    }
+  };
+
+  const fetchGeomagneticData = async () => {
+    try {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dayAfter = new Date(today);
+      dayAfter.setDate(dayAfter.getDate() + 2);
+
+      const formatDate = (date: Date) => {
+        const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        return `${days[date.getDay()]}, ${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
+      };
+
+      const kIndex = Math.floor(Math.random() * 9);
+      const getLevel = (k: number) => {
+        if (k <= 2) return 'Спокойная обстановка';
+        if (k <= 4) return 'Слабая геомагнитная буря';
+        if (k <= 6) return 'Умеренная магнитная буря';
+        return 'Сильная магнитная буря';
+      };
+
+      const getDescription = (k: number) => {
+        if (k <= 2) return 'Геомагнитное поле Земли спокойное. Негативного влияния на самочувствие не ожидается.';
+        if (k <= 4) return 'Небольшие возмущения магнитного поля. Чувствительные люди могут испытывать легкий дискомфорт.';
+        if (k <= 6) return 'Заметные колебания магнитного поля. Возможны головные боли и усталость у метеочувствительных людей.';
+        return 'Сильные возмущения геомагнитного поля! Высокий риск недомогания, головных болей, перепадов давления.';
+      };
+
+      const mockData = {
+        kIndex,
+        level: getLevel(kIndex),
+        description: getDescription(kIndex),
+        forecast: [
+          { date: formatDate(today), kIndex, level: getLevel(kIndex) },
+          { date: formatDate(tomorrow), kIndex: Math.floor(Math.random() * 6), level: getLevel(Math.floor(Math.random() * 6)) },
+          { date: formatDate(dayAfter), kIndex: Math.floor(Math.random() * 6), level: getLevel(Math.floor(Math.random() * 6)) }
+        ]
+      };
+
+      setGeomagneticData(mockData);
+    } catch (error) {
+      console.error('Failed to fetch geomagnetic data:', error);
     }
   };
 
@@ -340,6 +388,8 @@ const Index = () => {
         />
 
         <AirQualityCard airQualityData={airQualityData} />
+
+        <GeomagneticCard geomagneticData={geomagneticData} />
 
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
