@@ -79,7 +79,9 @@ def fetch_openweathermap_data(lat: float, lon: float, api_key: str) -> Dict[str,
                 'rain': round(item.get('rain', {}).get('3h', 0), 1),
                 'snow': round(item.get('snow', {}).get('3h', 0), 1),
                 'precipitation': round(item.get('rain', {}).get('3h', 0) + item.get('snow', {}).get('3h', 0), 1),
-                'pressure': item['main']['pressure']
+                'pressure': item['main']['pressure'],
+                'windSpeed': round(item['wind']['speed'] * 3.6),
+                'windDirection': item['wind'].get('deg', 0)
             })
         
         daily_groups = {}
