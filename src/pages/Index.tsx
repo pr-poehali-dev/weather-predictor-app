@@ -109,35 +109,6 @@ const Index = () => {
   }, [selectedLocation]);
 
   useEffect(() => {
-    const checkDailyForecast = () => {
-      const settings = localStorage.getItem('weatherNotifications');
-      if (!settings) return;
-      
-      const parsed = JSON.parse(settings);
-      if (!parsed.dailyForecast) return;
-
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const [targetHour, targetMinute] = parsed.dailyForecastTime.split(':').map(Number);
-
-      if (currentHour === targetHour && currentMinute >= targetMinute && currentMinute < targetMinute + 5) {
-        if (weatherData && dailyForecast.length > 0) {
-          const today = dailyForecast[0];
-          const forecastText = `Температура: ${today.low}°...${today.high}°\n${today.condition}\nВероятность осадков: ${today.precip}%\nВетер: ${currentWeather.windSpeed} км/ч`;
-          
-          notificationService.sendDailyForecast(forecastText);
-        }
-      }
-    };
-
-    const interval = setInterval(checkDailyForecast, 60000);
-    checkDailyForecast();
-
-    return () => clearInterval(interval);
-  }, [weatherData, dailyForecast, currentWeather]);
-
-  useEffect(() => {
     if (searchQuery.length === 0) {
       setSearchResults([]);
       return;
@@ -313,6 +284,35 @@ const Index = () => {
     { label: 'Облачность', value: `${currentWeather.cloudCover}%`, icon: 'Cloud' },
     { label: 'Осадки', value: `${currentWeather.precipitation} мм`, icon: 'CloudRain' }
   ];
+
+  useEffect(() => {
+    const checkDailyForecast = () => {
+      const settings = localStorage.getItem('weatherNotifications');
+      if (!settings) return;
+      
+      const parsed = JSON.parse(settings);
+      if (!parsed.dailyForecast) return;
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const [targetHour, targetMinute] = parsed.dailyForecastTime.split(':').map(Number);
+
+      if (currentHour === targetHour && currentMinute >= targetMinute && currentMinute < targetMinute + 5) {
+        if (weatherData && dailyForecast.length > 0) {
+          const today = dailyForecast[0];
+          const forecastText = `Температура: ${today.low}°...${today.high}°\n${today.condition}\nВероятность осадков: ${today.precip}%\nВетер: ${currentWeather.windSpeed} км/ч`;
+          
+          notificationService.sendDailyForecast(forecastText);
+        }
+      }
+    };
+
+    const interval = setInterval(checkDailyForecast, 60000);
+    checkDailyForecast();
+
+    return () => clearInterval(interval);
+  }, [weatherData, dailyForecast, currentWeather]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#4A90E2] via-[#7EC8E3] to-[#98D8C8] dark:from-[#1a2332] dark:via-[#243447] dark:to-[#2a4556] p-3 md:p-8 transition-colors duration-300">
