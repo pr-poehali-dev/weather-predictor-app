@@ -44,13 +44,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     body_data = json.loads(event.get('body', '{}'))
-    print(f'Received webhook data: {json.dumps(body_data)}')
+    print(f'FULL WEBHOOK PAYLOAD: {json.dumps(body_data, ensure_ascii=False, indent=2)}')
     
     # Обработка webhook от Telegram
     if 'message' in body_data:
         message = body_data['message']
         chat_id = message['chat']['id']
         text = message.get('text', '')
+        print(f'EXTRACTED chat_id: {chat_id} (type: {type(chat_id).__name__})')
         
         print(f'Processing message from {chat_id}: {text}')
         response_text = handle_command(text, chat_id)
