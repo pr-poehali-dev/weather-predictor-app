@@ -22,6 +22,6 @@ async function checkVersion() {
 }
 
 checkVersion();
-setInterval(checkVersion, 10000);
+setInterval(checkVersion, 5000);
 
 createRoot(document.getElementById("root")!).render(<App />);
