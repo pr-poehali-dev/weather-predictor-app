@@ -14,10 +14,6 @@ export default function ApiKeySettings({ isAdmin }: ApiKeySettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [tempKey, setTempKey] = useState('');
   const { toast } = useToast();
-  
-  if (!isAdmin) {
-    return null;
-  }
 
   useEffect(() => {
     const saved = localStorage.getItem('weather_api_key');
@@ -26,6 +22,10 @@ export default function ApiKeySettings({ isAdmin }: ApiKeySettingsProps) {
       setTempKey(saved);
     }
   }, []);
+  
+  if (!isAdmin) {
+    return null;
+  }
 
   const handleSave = () => {
     localStorage.setItem('weather_api_key', tempKey);
