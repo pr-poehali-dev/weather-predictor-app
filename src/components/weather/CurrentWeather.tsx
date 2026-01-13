@@ -82,7 +82,7 @@ export default function CurrentWeather({
               <div>
                 <div className="text-xs md:text-sm opacity-90 dark:text-white/90">Восход</div>
                 <div className="text-lg md:text-2xl font-bold dark:text-white">
-                  {sunData.sunrise ? new Date(sunData.sunrise).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                  {sunData.sunrise ? (sunData.sunrise.includes('T') ? new Date(sunData.sunrise).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : sunData.sunrise) : '--:--'}
                 </div>
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function CurrentWeather({
               <div>
                 <div className="text-xs md:text-sm opacity-90 dark:text-white/90">Закат</div>
                 <div className="text-lg md:text-2xl font-bold dark:text-white">
-                  {sunData.sunset ? new Date(sunData.sunset).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                  {sunData.sunset ? (sunData.sunset.includes('T') ? new Date(sunData.sunset).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : sunData.sunset) : '--:--'}
                 </div>
               </div>
             </div>
@@ -104,8 +104,20 @@ export default function CurrentWeather({
             <div className="text-xs md:text-sm opacity-90 dark:text-white/90 mb-2">Продолжительность дня</div>
             <div className="text-base md:text-xl font-bold dark:text-white">
               {sunData.sunrise && sunData.sunset ? (() => {
-                const sunrise = new Date(sunData.sunrise);
-                const sunset = new Date(sunData.sunset);
+                let sunrise: Date;
+                let sunset: Date;
+                
+                if (sunData.sunrise.includes('T')) {
+                  sunrise = new Date(sunData.sunrise);
+                  sunset = new Date(sunData.sunset);
+                } else {
+                  const today = new Date();
+                  const [sunriseHour, sunriseMin] = sunData.sunrise.split(':').map(Number);
+                  const [sunsetHour, sunsetMin] = sunData.sunset.split(':').map(Number);
+                  sunrise = new Date(today.getFullYear(), today.getMonth(), today.getDate(), sunriseHour, sunriseMin);
+                  sunset = new Date(today.getFullYear(), today.getMonth(), today.getDate(), sunsetHour, sunsetMin);
+                }
+                
                 const diffMs = sunset.getTime() - sunrise.getTime();
                 const hours = Math.floor(diffMs / (1000 * 60 * 60));
                 const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
