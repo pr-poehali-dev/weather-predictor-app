@@ -1,7 +1,7 @@
 """
-Business: Get air quality and pollen forecast data from Open-Meteo
+Business: Get air quality and pollen forecast data
 Args: event with httpMethod, queryStringParameters (lat, lon)
-Returns: HTTP response with air quality index and allergen levels for 7 days
+Returns: HTTP response with air quality index and allergen levels
 """
 
 import json

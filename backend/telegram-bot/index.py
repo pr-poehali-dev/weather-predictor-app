@@ -5,7 +5,7 @@ import urllib.request
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Telegram бот для настройки уведомлений о погоде и пыльце
+    Business: Telegram бот для настройки уведомлений о погоде
     Args: event - dict с httpMethod, body (webhook от Telegram)
           context - object с request_id
     Returns: HTTP response dict
