@@ -3,7 +3,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-// v2.0 - Canvas visualization without Leaflet
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+}
+
 interface SynopticMapProps {
   selectedLocation: {
     lat: number;
@@ -16,9 +24,11 @@ interface SynopticMapProps {
 export default function SynopticMap({ selectedLocation, weatherData }: SynopticMapProps) {
   const [timeIndex, setTimeIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [layerType, setLayerType] = useState<'wind' | 'rain' | 'pollen'>('wind');
+  const [layerType, setLayerType] = useState<'wind' | 'rain'>('wind');
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number | null>(null);
+  const particlesRef = useRef<Particle[]>([]);
 
   const maxHours = weatherData?.hourly?.length || 24;
 
@@ -50,95 +60,115 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     const hourData = weatherData?.hourly?.[timeIndex];
     if (!hourData) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const baseWindSpeed = hourData.windSpeed || 10;
+    const baseWindDeg = hourData.windDirection || 0;
+    const rain = hourData.rain || 0;
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    ctx.fillStyle = '#E8F4FD';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.font = '40px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('📍', centerX, centerY);
-
-    ctx.font = '14px Arial';
-    ctx.fillStyle = '#34495E';
-    ctx.fillText(selectedLocation.name, centerX, centerY + 50);
-
-    const baseWindSpeed = hourData.windSpeed || 0;
-    const baseWindDeg = hourData.windDirection || 0;
-    const rain = hourData.rain || 0;
-
-    const gridSize = 80;
-    const rows = 5;
-    const cols = 7;
-    const startX = (canvas.width - cols * gridSize) / 2;
-    const startY = (canvas.height - rows * gridSize) / 2;
-
-    console.log('Wind data:', { baseWindSpeed, baseWindDeg, timeIndex, hourData });
-
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        const x = startX + j * gridSize + gridSize / 2;
-        const y = startY + i * gridSize + gridSize / 2;
-
-        if (Math.abs(x - centerX) < 50 && Math.abs(y - centerY) < 50) continue;
-
-        if (layerType === 'wind') {
-          const distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-          const variation = (i * cols + j) * 15;
-          
-          const windSpeed = Math.max(baseWindSpeed + (Math.sin(variation) * 5), 0);
-          const windDeg = baseWindDeg + (Math.cos(variation) * 30);
-          
-          const angle = (windDeg - 90) * (Math.PI / 180);
-          const arrowLength = Math.max(Math.min(windSpeed * 1.5, 40), 15);
-          
-          const color = windSpeed > 30 ? '#E74C3C' : windSpeed > 15 ? '#F39C12' : '#4A90E2';
-          
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(
-            x + arrowLength * Math.cos(angle),
-            y + arrowLength * Math.sin(angle)
-          );
-          ctx.stroke();
-
-          const headSize = 8;
-          const headAngle = Math.PI / 6;
-          ctx.beginPath();
-          ctx.moveTo(
-            x + arrowLength * Math.cos(angle),
-            y + arrowLength * Math.sin(angle)
-          );
-          ctx.lineTo(
-            x + arrowLength * Math.cos(angle) - headSize * Math.cos(angle - headAngle),
-            y + arrowLength * Math.sin(angle) - headSize * Math.sin(angle - headAngle)
-          );
-          ctx.moveTo(
-            x + arrowLength * Math.cos(angle),
-            y + arrowLength * Math.sin(angle)
-          );
-          ctx.lineTo(
-            x + arrowLength * Math.cos(angle) - headSize * Math.cos(angle + headAngle),
-            y + arrowLength * Math.sin(angle) - headSize * Math.sin(angle + headAngle)
-          );
-          ctx.stroke();
-        }
-
-        if (layerType === 'rain' && rain > 0) {
-          const radius = Math.min(rain * 5, 30);
-          ctx.fillStyle = `rgba(74, 144, 226, ${Math.min(rain / 10, 0.7)})`;
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
+    if (particlesRef.current.length === 0) {
+      for (let i = 0; i < 200; i++) {
+        particlesRef.current.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: 0,
+          vy: 0,
+          life: Math.random() * 100,
+          maxLife: 100 + Math.random() * 50
+        });
       }
     }
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(232, 244, 253, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (layerType === 'wind') {
+        particlesRef.current.forEach((particle) => {
+          const dx = particle.x - centerX;
+          const dy = particle.y - centerY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          const variation = Math.sin(particle.x * 0.01) * 20 + Math.cos(particle.y * 0.01) * 20;
+          const windDeg = baseWindDeg + variation;
+          const windSpeed = baseWindSpeed * (1 + Math.sin(distance * 0.01) * 0.3);
+          
+          const angleRad = (windDeg - 90) * (Math.PI / 180);
+          particle.vx = Math.cos(angleRad) * windSpeed * 0.5;
+          particle.vy = Math.sin(angleRad) * windSpeed * 0.5;
+
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          particle.life++;
+
+          if (particle.x < 0 || particle.x > canvas.width || 
+              particle.y < 0 || particle.y > canvas.height || 
+              particle.life > particle.maxLife) {
+            particle.x = Math.random() * canvas.width;
+            particle.y = Math.random() * canvas.height;
+            particle.life = 0;
+          }
+
+          const speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+          const color = speed > 15 ? 'rgba(231, 76, 60, 0.6)' : 
+                       speed > 7 ? 'rgba(243, 156, 18, 0.6)' : 
+                       'rgba(74, 144, 226, 0.6)';
+          
+          const alpha = Math.min(particle.life / 20, 1) * (1 - particle.life / particle.maxLife);
+          
+          ctx.strokeStyle = color.replace('0.6', String(alpha * 0.8));
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(particle.x, particle.y);
+          ctx.lineTo(particle.x - particle.vx * 3, particle.y - particle.vy * 3);
+          ctx.stroke();
+        });
+      } else if (layerType === 'rain' && rain > 0) {
+        particlesRef.current.forEach((particle) => {
+          particle.vx = Math.sin(particle.x * 0.02) * 0.5;
+          particle.vy = 5 + rain * 0.5;
+
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          particle.life++;
+
+          if (particle.y > canvas.height || particle.life > particle.maxLife) {
+            particle.x = Math.random() * canvas.width;
+            particle.y = 0;
+            particle.life = 0;
+          }
+
+          const alpha = Math.min(particle.life / 20, 1) * (1 - particle.life / particle.maxLife);
+          
+          ctx.fillStyle = `rgba(74, 144, 226, ${alpha * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      ctx.font = '40px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('📍', centerX, centerY);
+
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#34495E';
+      ctx.fillText(selectedLocation.name, centerX, centerY + 50);
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    ctx.fillStyle = '#E8F4FD';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    animate();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, [timeIndex, layerType, weatherData, selectedLocation]);
 
   const currentTime = weatherData?.hourly?.[timeIndex]?.time || 'Загрузка...';
