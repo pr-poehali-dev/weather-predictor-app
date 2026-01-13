@@ -141,18 +141,16 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     }
 
     const animate = () => {
-      const bgColor = document.documentElement.classList.contains('dark') ? '#1a2332' : '#E8F4FD';
+      const isDark = document.documentElement.classList.contains('dark');
+      const bgColor = isDark ? '#1a2332' : '#E8F4FD';
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       if (mapImageRef.current) {
-        const isDark = document.documentElement.classList.contains('dark');
         ctx.globalAlpha = isDark ? 0.6 : 0.5;
         ctx.drawImage(mapImageRef.current, 0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1.0;
       }
-      
-      const isDark = document.documentElement.classList.contains('dark');
       ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(100, 100, 100, 0.2)';
       ctx.lineWidth = 1;
       for (let i = 0; i < canvas.width; i += 50) {
@@ -238,7 +236,6 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
       ctx.fillText('📍', centerX, centerY);
 
       ctx.font = '14px Arial';
-      const isDark = document.documentElement.classList.contains('dark');
       ctx.fillStyle = isDark ? '#ffffff' : '#34495E';
       ctx.fillText(selectedLocation.name, centerX, centerY + 50);
 
