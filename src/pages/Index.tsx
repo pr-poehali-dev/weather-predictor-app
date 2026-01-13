@@ -12,6 +12,7 @@ import PrecipitationTab from '@/components/weather/PrecipitationTab';
 import AnalyticsTab from '@/components/weather/AnalyticsTab';
 import NotificationSettings from '@/components/weather/NotificationSettings';
 import SynopticMap from '@/components/weather/SynopticMap';
+import ApiKeysManager from '@/components/ApiKeysManager';
 
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
@@ -226,6 +227,8 @@ const Index = () => {
         />
 
         <AirQualityCard airQualityData={airQualityData} />
+
+        <ApiKeysManager />
 
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
