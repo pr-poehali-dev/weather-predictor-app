@@ -25,8 +25,10 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
   const [timeIndex, setTimeIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [layerType, setLayerType] = useState<'wind' | 'rain'>('wind');
+  const [zoom, setZoom] = useState(8);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mapImageRef = useRef<HTMLImageElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
 
@@ -49,6 +51,28 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
       }
     };
   }, [isPlaying, maxHours]);
+
+  useEffect(() => {
+    const tileSize = 256;
+    const scale = Math.pow(2, zoom);
+    const worldSize = tileSize * scale;
+    
+    const lon = selectedLocation.lon;
+    const lat = selectedLocation.lat;
+    
+    const x = ((lon + 180) / 360) * worldSize;
+    const latRad = (lat * Math.PI) / 180;
+    const y = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * worldSize;
+    
+    const mapUrl = `https://tile.openstreetmap.org/${zoom}/${Math.floor(x / tileSize)}/${Math.floor(y / tileSize)}.png`;
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = mapUrl;
+    img.onload = () => {
+      mapImageRef.current = img;
+    };
+  }, [selectedLocation, zoom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -81,8 +105,29 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     }
 
     const animate = () => {
-      ctx.fillStyle = 'rgba(232, 244, 253, 0.05)';
+      ctx.fillStyle = '#E8F4FD';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      if (mapImageRef.current) {
+        ctx.globalAlpha = 0.4;
+        ctx.drawImage(mapImageRef.current, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1.0;
+      }
+      
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 50) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let i = 0; i < canvas.height; i += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+      }
 
       if (layerType === 'wind') {
         particlesRef.current.forEach((particle) => {
