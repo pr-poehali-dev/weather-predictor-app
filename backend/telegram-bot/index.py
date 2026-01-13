@@ -226,6 +226,9 @@ def send_message(chat_id: int, text: str) -> bool:
         'text': text
     }
     
+    print(f'Sending to Telegram API: {url}')
+    print(f'Data: {json.dumps(data, ensure_ascii=False)}')
+    
     try:
         req = urllib.request.Request(
             url,
@@ -237,6 +240,10 @@ def send_message(chat_id: int, text: str) -> bool:
             result = json.loads(response.read().decode('utf-8'))
             print(f'Send message result: {result}')
             return result.get('ok', False)
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        print(f'Telegram API error {e.code}: {error_body}')
+        return False
     except Exception as e:
         print(f'Send message error: {str(e)}')
         return False
