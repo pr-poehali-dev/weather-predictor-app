@@ -8,6 +8,7 @@ import PollenNotifications from './PollenNotifications';
 import WeatherNotifications from './WeatherNotifications';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
+const TELEGRAM_BOT_API = 'https://functions.poehali.dev/f03fce2f-ec26-44b9-8491-2ec4d99f6a01';
 const TELEGRAM_BOT_USERNAME = 'WolfWeatherForecaste_Bot';
 
 export default function NotificationSettings() {
@@ -54,6 +55,33 @@ export default function NotificationSettings() {
       });
     }
   }, []);
+
+  const setupTelegramWebhook = async () => {
+    try {
+      const response = await fetch(`${TELEGRAM_BOT_API}?action=set-webhook`);
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: '✅ Webhook настроен',
+          description: 'Telegram бот готов к работе!',
+        });
+        checkBotStatus();
+      } else {
+        toast({
+          title: '❌ Ошибка',
+          description: 'Не удалось настроить webhook',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '❌ Ошибка',
+        description: 'Не удалось подключиться к боту',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const checkBotStatus = async () => {
     setBotStatus('checking');
@@ -190,17 +218,29 @@ export default function NotificationSettings() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#2a3f54] border-2 border-gray-200 dark:border-gray-600">
-          <div className={`w-2 h-2 rounded-full ${statusDisplay.color} ${botStatus === 'checking' ? 'animate-pulse' : ''}`} />
-          <Icon name={statusDisplay.icon} size={14} className="text-[#34495E]/70 dark:text-white/70" />
-          <span className="text-xs font-medium text-[#34495E] dark:text-white/90">{statusDisplay.text}</span>
-          <button 
-            onClick={checkBotStatus}
-            className="ml-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            title="Обновить статус"
-          >
-            <Icon name="RefreshCw" size={12} className="text-[#34495E]/50 dark:text-white/50" />
-          </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#2a3f54] border-2 border-gray-200 dark:border-gray-600">
+            <div className={`w-2 h-2 rounded-full ${statusDisplay.color} ${botStatus === 'checking' ? 'animate-pulse' : ''}`} />
+            <Icon name={statusDisplay.icon} size={14} className="text-[#34495E]/70 dark:text-white/70" />
+            <span className="text-xs font-medium text-[#34495E] dark:text-white/90">{statusDisplay.text}</span>
+            <button 
+              onClick={checkBotStatus}
+              className="ml-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              title="Обновить статус"
+            >
+              <Icon name="RefreshCw" size={12} className="text-[#34495E]/50 dark:text-white/50" />
+            </button>
+          </div>
+          {botStatus === 'inactive' && (
+            <Button 
+              onClick={setupTelegramWebhook} 
+              size="sm"
+              className="bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90"
+            >
+              <Icon name="Zap" size={14} className="mr-1" />
+              Активировать
+            </Button>
+          )}
         </div>
       </div>
 

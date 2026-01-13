@@ -11,6 +11,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Returns: HTTP response dict
     '''
     method: str = event.get('httpMethod', 'POST')
+    query_params = event.get('queryStringParameters', {})
+    
+    print(f'Telegram bot request: method={method}, query={query_params}')
+    
+    # Setup webhook
+    if method == 'GET' and query_params.get('action') == 'set-webhook':
+        return setup_webhook()
     
     if method == 'OPTIONS':
         return {
@@ -37,6 +44,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     body_data = json.loads(event.get('body', '{}'))
+    print(f'Received webhook data: {json.dumps(body_data)}')
     
     # Обработка webhook от Telegram
     if 'message' in body_data:
@@ -44,8 +52,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         chat_id = message['chat']['id']
         text = message.get('text', '')
         
+        print(f'Processing message from {chat_id}: {text}')
         response_text = handle_command(text, chat_id)
-        send_message(chat_id, response_text)
+        print(f'Sending response: {response_text[:50]}...')
+        result = send_message(chat_id, response_text)
+        print(f'Message sent: {result}')
     
     return {
         'statusCode': 200,
@@ -141,11 +152,72 @@ Chat ID: `{}`
 
 Используйте /help для списка команд или /start для начала.'''
 
+def setup_webhook() -> Dict[str, Any]:
+    '''Настройка webhook для Telegram бота'''
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    
+    if not bot_token:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'TELEGRAM_BOT_TOKEN not configured'}),
+            'isBase64Encoded': False
+        }
+    
+    webhook_url = 'https://functions.poehali.dev/f03fce2f-ec26-44b9-8491-2ec4d99f6a01'
+    url = f'https://api.telegram.org/bot{bot_token}/setWebhook'
+    
+    data = {
+        'url': webhook_url,
+        'allowed_updates': ['message'],
+        'drop_pending_updates': True
+    }
+    
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode('utf-8'),
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            print(f'Webhook setup result: {result}')
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'success': result.get('ok', False),
+                    'webhook_url': webhook_url,
+                    'result': result
+                }),
+                'isBase64Encoded': False
+            }
+    except Exception as e:
+        print(f'Webhook setup error: {str(e)}')
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }
+
 def send_message(chat_id: int, text: str) -> bool:
     '''Отправка сообщения в Telegram'''
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     
     if not bot_token:
+        print('TELEGRAM_BOT_TOKEN not configured')
         return False
     
     url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
@@ -165,6 +237,8 @@ def send_message(chat_id: int, text: str) -> bool:
         
         with urllib.request.urlopen(req) as response:
             result = json.loads(response.read().decode('utf-8'))
+            print(f'Send message result: {result}')
             return result.get('ok', False)
-    except:
+    except Exception as e:
+        print(f'Send message error: {str(e)}')
         return False
