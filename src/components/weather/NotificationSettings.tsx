@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import NotificationChannels from './NotificationChannels';
+import PollenNotifications from './PollenNotifications';
+import WeatherNotifications from './WeatherNotifications';
 
 const NOTIFICATIONS_API = 'https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1';
 const TELEGRAM_BOT_USERNAME = 'WolfWeatherForecaste_Bot';
@@ -19,9 +19,25 @@ export default function NotificationSettings() {
     telegram: '',
     emailEnabled: false,
     telegramEnabled: false,
+    
     pollenHigh: true,
     pollenMedium: false,
+    pollenTypes: {
+      birch: true,
+      grass: true,
+      ragweed: true,
+      tree: false,
+      weed: false,
+    },
+    
     weatherAlert: true,
+    precipitationEnabled: false,
+    minPrecipitation: 0.1,
+    
+    pressureEnabled: false,
+    minPressure: 730,
+    maxPressure: 770,
+    
     dailyForecast: false,
     dailyForecastTime: '08:00'
   });
@@ -30,15 +46,18 @@ export default function NotificationSettings() {
     checkBotStatus();
     const saved = localStorage.getItem('weatherNotifications');
     if (saved) {
-      setSettings(JSON.parse(saved));
+      const parsedSettings = JSON.parse(saved);
+      setSettings({
+        ...settings,
+        ...parsedSettings,
+        pollenTypes: parsedSettings.pollenTypes || settings.pollenTypes,
+      });
     }
   }, []);
 
   const checkBotStatus = async () => {
     setBotStatus('checking');
     try {
-      console.log('Checking bot status at:', `${NOTIFICATIONS_API}?action=bot-status`);
-      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
@@ -50,28 +69,19 @@ export default function NotificationSettings() {
       });
       clearTimeout(timeoutId);
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Bot status data:', data);
       
       if (data.active) {
         setBotStatus('active');
         setBotInfo(data.bot);
-        console.log('Bot is active:', data.bot);
       } else {
         setBotStatus('inactive');
-        console.log('Bot is inactive, reason:', data.reason);
       }
     } catch (error: any) {
-      console.error('Bot status check failed:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      
       if (error.name === 'AbortError') {
         setBotStatus('error');
       } else {
@@ -168,233 +178,61 @@ export default function NotificationSettings() {
   const statusDisplay = getStatusDisplay();
 
   return (
-    <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+    <Card className="p-6 bg-white/95 dark:bg-[#1e2936]/95 backdrop-blur-sm border-0 shadow-xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-gradient-to-br from-[#4A90E2] to-[#98D8C8]">
             <Icon name="Bell" size={24} className="text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-[#34495E]">Уведомления</h3>
-            <p className="text-sm text-[#34495E]/60">Настройте оповещения о погоде и аллергенах</p>
+            <h3 className="text-xl font-semibold text-[#34495E] dark:text-white/90">Уведомления</h3>
+            <p className="text-sm text-[#34495E]/60 dark:text-white/60">Настройте оповещения о погоде и аллергенах</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-gray-200">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#2a3f54] border-2 border-gray-200 dark:border-gray-600">
           <div className={`w-2 h-2 rounded-full ${statusDisplay.color} ${botStatus === 'checking' ? 'animate-pulse' : ''}`} />
-          <Icon name={statusDisplay.icon} size={14} className="text-[#34495E]/70" />
-          <span className="text-xs font-medium text-[#34495E]">{statusDisplay.text}</span>
+          <Icon name={statusDisplay.icon} size={14} className="text-[#34495E]/70 dark:text-white/70" />
+          <span className="text-xs font-medium text-[#34495E] dark:text-white/90">{statusDisplay.text}</span>
           <button 
             onClick={checkBotStatus}
-            className="ml-1 p-1 hover:bg-gray-100 rounded transition-colors"
+            className="ml-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             title="Обновить статус"
           >
-            <Icon name="RefreshCw" size={12} className="text-[#34495E]/50" />
+            <Icon name="RefreshCw" size={12} className="text-[#34495E]/50 dark:text-white/50" />
           </button>
         </div>
       </div>
 
       <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100">
-            <div className="flex items-center gap-3">
-              <Icon name="Mail" size={20} className="text-[#4A90E2]" />
-              <Label htmlFor="email-notifications" className="font-medium text-[#34495E]">
-                Email уведомления
-              </Label>
-            </div>
-            <Switch
-              id="email-notifications"
-              checked={settings.emailEnabled}
-              onCheckedChange={(checked) => setSettings({ ...settings, emailEnabled: checked })}
-            />
-          </div>
+        <NotificationChannels 
+          settings={settings}
+          onSettingsChange={setSettings}
+          telegramBotUsername={TELEGRAM_BOT_USERNAME}
+        />
 
-          {settings.emailEnabled && (
-            <div className="ml-4 pl-4 border-l-2 border-blue-200">
-              <Input
-                type="email"
-                placeholder="your@email.com"
-                value={settings.email}
-                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                className="max-w-md"
-              />
-            </div>
-          )}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <PollenNotifications 
+            settings={settings}
+            onSettingsChange={setSettings}
+          />
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-[#98D8C8]/30 to-[#4A90E2]/30">
-            <div className="flex items-center gap-3">
-              <Icon name="Send" size={20} className="text-[#4A90E2]" />
-              <Label htmlFor="telegram-notifications" className="font-medium text-[#34495E]">
-                Telegram уведомления
-              </Label>
-            </div>
-            <Switch
-              id="telegram-notifications"
-              checked={settings.telegramEnabled}
-              onCheckedChange={(checked) => setSettings({ ...settings, telegramEnabled: checked })}
-            />
-          </div>
-
-          {settings.telegramEnabled && (
-            <div className="ml-4 pl-4 border-l-2 border-[#98D8C8] space-y-3">
-              <Input
-                type="text"
-                placeholder="@username или Chat ID"
-                value={settings.telegram}
-                onChange={(e) => setSettings({ ...settings, telegram: e.target.value })}
-                className="max-w-md"
-              />
-              
-              {botStatus === 'inactive' && (
-                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300 space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Icon name="AlertCircle" size={16} className="text-yellow-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-yellow-800 mb-1">
-                        ⚠️ Бот не настроен
-                      </p>
-                      <p className="text-xs text-yellow-700">
-                        Чтобы получать уведомления в Telegram, необходимо настроить бота. 
-                        Следуйте инструкции в файле <code className="bg-yellow-100 px-1 rounded">TELEGRAM_BOT_SETUP.md</code>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {botStatus === 'active' && (
-                <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-[#34495E] mb-2">
-                      🤖 Настройте уведомления через бота:
-                    </p>
-                    <ol className="text-xs text-[#34495E]/70 space-y-1 ml-4 list-decimal">
-                      <li>Нажмите кнопку ниже, чтобы открыть бота</li>
-                      <li>Напишите команду /start</li>
-                      <li>Бот пришлёт ваш Chat ID — скопируйте его сюда</li>
-                    </ol>
-                    <p className="text-xs text-[#34495E]/50 mt-2">
-                      💡 Можно указать @username (например @ivan) или Chat ID (123456789)
-                    </p>
-                    
-                    <div className="mt-3 p-2 bg-white/50 rounded border border-blue-300">
-                      <p className="text-xs font-medium text-[#34495E] mb-1">Команды бота:</p>
-                      <div className="text-xs text-[#34495E]/70 space-y-0.5">
-                        <div><code className="bg-white px-1 rounded">/subscribe</code> — подписаться</div>
-                        <div><code className="bg-white px-1 rounded">/email your@email.com</code> — добавить email</div>
-                        <div><code className="bg-white px-1 rounded">/settings</code> — посмотреть настройки</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={() => window.open(`https://t.me/${botInfo?.username || TELEGRAM_BOT_USERNAME}`, '_blank')}
-                    className="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white"
-                    size="sm"
-                  >
-                    <Icon name="Send" size={16} className="mr-2" />
-                    Открыть бота в Telegram
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <WeatherNotifications 
+            settings={settings}
+            onSettingsChange={setSettings}
+          />
         </div>
 
-        <div className="pt-4 border-t border-[#34495E]/10">
-          <h4 className="font-semibold text-[#34495E] mb-4">Типы уведомлений</h4>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-red-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="AlertTriangle" size={18} className="text-red-500" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Высокий уровень пыльцы</div>
-                  <div className="text-xs text-[#34495E]/60">Индекс {'>'} 9.0</div>
-                </div>
-              </div>
-              <Switch
-                checked={settings.pollenHigh}
-                onCheckedChange={(checked) => setSettings({ ...settings, pollenHigh: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-yellow-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="AlertCircle" size={18} className="text-yellow-600" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Средний уровень пыльцы</div>
-                  <div className="text-xs text-[#34495E]/60">Индекс 4.0-9.0</div>
-                </div>
-              </div>
-              <Switch
-                checked={settings.pollenMedium}
-                onCheckedChange={(checked) => setSettings({ ...settings, pollenMedium: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-orange-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Icon name="CloudRain" size={18} className="text-orange-600" />
-                <div>
-                  <div className="font-medium text-[#34495E]">Экстремальная погода</div>
-                  <div className="text-xs text-[#34495E]/60">Штормы, метели, ураганы</div>
-                </div>
-              </div>
-              <Switch
-                checked={settings.weatherAlert}
-                onCheckedChange={(checked) => setSettings({ ...settings, weatherAlert: checked })}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Icon name="Calendar" size={18} className="text-blue-600" />
-                  <div>
-                    <div className="font-medium text-[#34495E]">Ежедневный прогноз</div>
-                    <div className="text-xs text-[#34495E]/60">Выберите время получения прогноза</div>
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.dailyForecast}
-                  onCheckedChange={(checked) => setSettings({ ...settings, dailyForecast: checked })}
-                />
-              </div>
-              {settings.dailyForecast && (
-                <div className="ml-12 flex items-center gap-3">
-                  <Label htmlFor="forecast-time" className="text-sm text-[#34495E]">Время:</Label>
-                  <Input
-                    id="forecast-time"
-                    type="time"
-                    value={settings.dailyForecastTime}
-                    onChange={(e) => setSettings({ ...settings, dailyForecastTime: e.target.value })}
-                    className="w-32"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleSave}
-            className="flex-1 bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90"
-          >
-            <Icon name="Save" size={18} className="mr-2" />
+        <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <Button onClick={handleSave} className="flex-1 bg-gradient-to-r from-[#4A90E2] to-[#98D8C8] hover:opacity-90">
+            <Icon name="Save" size={16} className="mr-2" />
             Сохранить настройки
           </Button>
-          <Button 
-            onClick={handleTestNotification}
-            variant="outline"
-            className="flex-1"
-          >
-            <Icon name="Send" size={18} className="mr-2" />
-            Тест уведомления
+          <Button onClick={handleTestNotification} variant="outline" className="dark:border-gray-600 dark:text-white/90 dark:hover:bg-[#2a3f54]">
+            <Icon name="Send" size={16} className="mr-2" />
+            Тест
           </Button>
         </div>
       </div>
