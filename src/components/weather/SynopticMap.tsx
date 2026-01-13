@@ -26,6 +26,7 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
   const [isPlaying, setIsPlaying] = useState(false);
   const [layerType, setLayerType] = useState<'wind' | 'rain'>('wind');
   const [zoom, setZoom] = useState(8);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: selectedLocation.lat, lon: selectedLocation.lon });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -107,7 +108,15 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -1 : 1;
-    setZoom(prev => Math.max(3, Math.min(15, prev + delta)));
+    const newZoom = Math.max(3, Math.min(15, zoom + delta));
+    
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
+    }
+    
+    zoomTimeoutRef.current = setTimeout(() => {
+      setZoom(newZoom);
+    }, 50);
   };
 
   useEffect(() => {
@@ -128,7 +137,7 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     const centerY = canvas.height / 2;
 
     if (particlesRef.current.length === 0) {
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 100; i++) {
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
@@ -230,14 +239,26 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
         });
       }
 
+      ctx.shadowColor = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 2;
+      
       ctx.font = '40px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('📍', centerX, centerY);
 
-      ctx.font = '14px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.fillStyle = isDark ? '#ffffff' : '#34495E';
       ctx.fillText(selectedLocation.name, centerX, centerY + 50);
+      
+      ctx.font = '12px Arial';
+      ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(52, 73, 94, 0.8)';
+      ctx.fillText(`${mapCenter.lat.toFixed(4)}°N, ${mapCenter.lon.toFixed(4)}°E`, centerX, centerY + 70);
+      
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -295,38 +316,70 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
           ref={canvasRef}
           width={800}
           height={500}
-          className="w-full h-auto max-h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD] dark:bg-[#2a3f5f] cursor-move"
+          className="w-full h-auto max-h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD] dark:bg-[#2a3f5f] cursor-move touch-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
+          onTouchStart={(e) => {
+            if (e.touches.length === 1) {
+              const touch = e.touches[0];
+              setIsDragging(true);
+              setDragStart({ x: touch.clientX, y: touch.clientY });
+            }
+          }}
+          onTouchMove={(e) => {
+            if (e.touches.length === 1 && isDragging) {
+              e.preventDefault();
+              const touch = e.touches[0];
+              const dx = touch.clientX - dragStart.x;
+              const dy = touch.clientY - dragStart.y;
+              const scale = Math.pow(2, zoom);
+              const lonDelta = -(dx / scale) * 0.5;
+              const latDelta = (dy / scale) * 0.5;
+              setMapCenter(prev => ({
+                lat: Math.max(-85, Math.min(85, prev.lat + latDelta)),
+                lon: prev.lon + lonDelta
+              }));
+              setDragStart({ x: touch.clientX, y: touch.clientY });
+            }
+          }}
+          onTouchEnd={() => setIsDragging(false)}
         />
         <div className="absolute top-4 right-4 flex flex-col gap-2">
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => setZoom(prev => Math.min(15, prev + 1))}
-            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
+            onTouchStart={(e) => { e.stopPropagation(); setZoom(prev => Math.min(15, prev + 1)); }}
+            onClick={(e) => { e.stopPropagation(); setZoom(prev => Math.min(15, prev + 1)); }}
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700 touch-none"
           >
             <Icon name="Plus" size={20} />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => setZoom(prev => Math.max(3, prev - 1))}
-            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
+            onTouchStart={(e) => { e.stopPropagation(); setZoom(prev => Math.max(3, prev - 1)); }}
+            onClick={(e) => { e.stopPropagation(); setZoom(prev => Math.max(3, prev - 1)); }}
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700 touch-none"
           >
             <Icon name="Minus" size={20} />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => {
+            onTouchStart={(e) => {
+              e.stopPropagation();
               setMapCenter({ lat: selectedLocation.lat, lon: selectedLocation.lon });
               setZoom(8);
             }}
-            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMapCenter({ lat: selectedLocation.lat, lon: selectedLocation.lon });
+              setZoom(8);
+            }}
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700 touch-none"
           >
             <Icon name="MapPin" size={20} />
           </Button>
