@@ -89,8 +89,8 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     const dy = e.clientY - dragStart.y;
 
     const scale = Math.pow(2, zoom);
-    const lonDelta = -(dx / scale) * 0.01;
-    const latDelta = (dy / scale) * 0.01;
+    const lonDelta = -(dx / scale) * 0.5;
+    const latDelta = (dy / scale) * 0.5;
 
     setMapCenter(prev => ({
       lat: Math.max(-85, Math.min(85, prev.lat + latDelta)),
@@ -141,16 +141,19 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     }
 
     const animate = () => {
-      ctx.fillStyle = '#E8F4FD';
+      const bgColor = document.documentElement.classList.contains('dark') ? '#1a2332' : '#E8F4FD';
+      ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       if (mapImageRef.current) {
-        ctx.globalAlpha = 0.4;
+        const isDark = document.documentElement.classList.contains('dark');
+        ctx.globalAlpha = isDark ? 0.6 : 0.5;
         ctx.drawImage(mapImageRef.current, 0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1.0;
       }
       
-      ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+      const isDark = document.documentElement.classList.contains('dark');
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(100, 100, 100, 0.2)';
       ctx.lineWidth = 1;
       for (let i = 0; i < canvas.width; i += 50) {
         ctx.beginPath();
@@ -235,7 +238,8 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
       ctx.fillText('📍', centerX, centerY);
 
       ctx.font = '14px Arial';
-      ctx.fillStyle = '#34495E';
+      const isDark = document.documentElement.classList.contains('dark');
+      ctx.fillStyle = isDark ? '#ffffff' : '#34495E';
       ctx.fillText(selectedLocation.name, centerX, centerY + 50);
 
       animationRef.current = requestAnimationFrame(animate);
@@ -306,7 +310,7 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
             variant="secondary"
             size="icon"
             onClick={() => setZoom(prev => Math.min(15, prev + 1))}
-            className="bg-white dark:bg-[#1e2936] shadow-lg"
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
           >
             <Icon name="Plus" size={20} />
           </Button>
@@ -314,15 +318,18 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
             variant="secondary"
             size="icon"
             onClick={() => setZoom(prev => Math.max(3, prev - 1))}
-            className="bg-white dark:bg-[#1e2936] shadow-lg"
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
           >
             <Icon name="Minus" size={20} />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => setMapCenter({ lat: selectedLocation.lat, lon: selectedLocation.lon })}
-            className="bg-white dark:bg-[#1e2936] shadow-lg"
+            onClick={() => {
+              setMapCenter({ lat: selectedLocation.lat, lon: selectedLocation.lon });
+              setZoom(8);
+            }}
+            className="bg-white/90 dark:bg-[#1e2936]/90 text-[#34495E] dark:text-white shadow-lg hover:bg-white dark:hover:bg-[#1e2936] border border-gray-300 dark:border-gray-700"
           >
             <Icon name="MapPin" size={20} />
           </Button>
