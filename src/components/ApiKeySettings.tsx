@@ -5,11 +5,19 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ApiKeySettings() {
+interface ApiKeySettingsProps {
+  isAdmin: boolean;
+}
+
+export default function ApiKeySettings({ isAdmin }: ApiKeySettingsProps) {
   const [apiKey, setApiKey] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [tempKey, setTempKey] = useState('');
   const { toast } = useToast();
+  
+  if (!isAdmin) {
+    return null;
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem('weather_api_key');
