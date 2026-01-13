@@ -26,6 +26,9 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
   const [isPlaying, setIsPlaying] = useState(false);
   const [layerType, setLayerType] = useState<'wind' | 'rain'>('wind');
   const [zoom, setZoom] = useState(8);
+  const [mapCenter, setMapCenter] = useState({ lat: selectedLocation.lat, lon: selectedLocation.lon });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapImageRef = useRef<HTMLImageElement | null>(null);
@@ -57,8 +60,8 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     const scale = Math.pow(2, zoom);
     const worldSize = tileSize * scale;
     
-    const lon = selectedLocation.lon;
-    const lat = selectedLocation.lat;
+    const lon = mapCenter.lon;
+    const lat = mapCenter.lat;
     
     const x = ((lon + 180) / 360) * worldSize;
     const latRad = (lat * Math.PI) / 180;
@@ -72,7 +75,40 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
     img.onload = () => {
       mapImageRef.current = img;
     };
-  }, [selectedLocation, zoom]);
+  }, [mapCenter, zoom]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging) return;
+
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+
+    const scale = Math.pow(2, zoom);
+    const lonDelta = -(dx / scale) * 0.01;
+    const latDelta = (dy / scale) * 0.01;
+
+    setMapCenter(prev => ({
+      lat: Math.max(-85, Math.min(85, prev.lat + latDelta)),
+      lon: prev.lon + lonDelta
+    }));
+
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -1 : 1;
+    setZoom(prev => Math.max(3, Math.min(15, prev + delta)));
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -253,12 +289,45 @@ export default function SynopticMap({ selectedLocation, weatherData }: SynopticM
         </div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={500}
-        className="w-full h-auto max-h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD] dark:bg-[#2a3f5f]"
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={800}
+          height={500}
+          className="w-full h-auto max-h-[500px] rounded-xl shadow-lg mb-4 bg-[#E8F4FD] dark:bg-[#2a3f5f] cursor-move"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        />
+        <div className="absolute top-4 right-4 flex flex-col gap-2">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setZoom(prev => Math.min(15, prev + 1))}
+            className="bg-white dark:bg-[#1e2936] shadow-lg"
+          >
+            <Icon name="Plus" size={20} />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setZoom(prev => Math.max(3, prev - 1))}
+            className="bg-white dark:bg-[#1e2936] shadow-lg"
+          >
+            <Icon name="Minus" size={20} />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setMapCenter({ lat: selectedLocation.lat, lon: selectedLocation.lon })}
+            className="bg-white dark:bg-[#1e2936] shadow-lg"
+          >
+            <Icon name="MapPin" size={20} />
+          </Button>
+        </div>
+      </div>
 
       <div className="space-y-4">
         <div className="flex items-center gap-4">
