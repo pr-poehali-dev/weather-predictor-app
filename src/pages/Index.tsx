@@ -109,6 +109,35 @@ const Index = () => {
   }, [selectedLocation]);
 
   useEffect(() => {
+    const checkDailyForecast = () => {
+      const settings = localStorage.getItem('weatherNotifications');
+      if (!settings) return;
+      
+      const parsed = JSON.parse(settings);
+      if (!parsed.dailyForecast) return;
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const [targetHour, targetMinute] = parsed.dailyForecastTime.split(':').map(Number);
+
+      if (currentHour === targetHour && currentMinute >= targetMinute && currentMinute < targetMinute + 5) {
+        if (weatherData && dailyForecast.length > 0) {
+          const today = dailyForecast[0];
+          const forecastText = `Температура: ${today.low}°...${today.high}°\n${today.condition}\nВероятность осадков: ${today.precip}%\nВетер: ${currentWeather.windSpeed} км/ч`;
+          
+          notificationService.sendDailyForecast(forecastText);
+        }
+      }
+    };
+
+    const interval = setInterval(checkDailyForecast, 60000);
+    checkDailyForecast();
+
+    return () => clearInterval(interval);
+  }, [weatherData, dailyForecast, currentWeather]);
+
+  useEffect(() => {
     if (searchQuery.length === 0) {
       setSearchResults([]);
       return;

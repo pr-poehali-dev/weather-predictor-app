@@ -183,9 +183,29 @@ export class NotificationService {
   async sendDailyForecast(forecastText: string): Promise<void> {
     if (!this.settings?.dailyForecast) return;
 
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const targetTime = this.settings.dailyForecastTime;
+
+    if (Math.abs(this.timeToMinutes(currentTime) - this.timeToMinutes(targetTime)) < 30) {
+      await this.sendNotification(
+        `🌤️ Прогноз на сегодня\n\n${forecastText}`,
+        'daily_forecast'
+      );
+    }
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  async sendTestNotification(): Promise<void> {
+    if (!this.settings) return;
+    
     await this.sendNotification(
-      `🌤️ Прогноз на сегодня\n\n${forecastText}`,
-      'daily_forecast'
+      `🐺 Тестовое уведомление\n\nЭто проверка связи от Волк-синоптик!\n\nВсе работает правильно! ✅`,
+      'test'
     );
   }
 }

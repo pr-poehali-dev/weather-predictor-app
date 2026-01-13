@@ -137,7 +137,10 @@ def send_email(to_email: str, message: str, notification_type: str) -> Dict[str,
     smtp_email = os.environ.get('SMTP_EMAIL')
     smtp_password = os.environ.get('SMTP_PASSWORD')
     
+    print(f'Sending email to: {to_email}, type: {notification_type}')
+    
     if not smtp_email or not smtp_password:
+        print('SMTP credentials not configured')
         return {'success': False, 'error': 'SMTP credentials not configured'}
     
     subject_map = {
@@ -176,8 +179,10 @@ def send_email(to_email: str, message: str, notification_type: str) -> Dict[str,
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(smtp_email, smtp_password)
             server.send_message(msg)
+        print(f'Email sent successfully to {to_email}')
         return {'success': True}
     except Exception as e:
+        print(f'Email error: {str(e)}')
         return {'success': False, 'error': str(e)}
 
 def get_chat_id_from_username(bot_token: str, username: str) -> str:
@@ -205,7 +210,10 @@ def get_chat_id_from_username(bot_token: str, username: str) -> str:
 def send_telegram(telegram_input: str, message: str) -> Dict[str, Any]:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     
+    print(f'Sending telegram to: {telegram_input}')
+    
     if not bot_token:
+        print('Telegram bot token not configured')
         return {'success': False, 'error': 'Telegram bot token not configured'}
     
     chat_id = telegram_input
@@ -229,6 +237,11 @@ def send_telegram(telegram_input: str, message: str) -> Dict[str, Any]:
         
         with urllib.request.urlopen(req) as response:
             result = json.loads(response.read().decode('utf-8'))
+            if result.get('ok'):
+                print(f'Telegram sent successfully to {chat_id}')
+            else:
+                print(f'Telegram error: {result}')
             return {'success': result.get('ok', False), 'chat_id': chat_id}
     except Exception as e:
+        print(f'Telegram exception: {str(e)}')
         return {'success': False, 'error': str(e)}
