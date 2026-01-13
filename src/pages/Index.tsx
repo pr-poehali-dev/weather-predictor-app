@@ -10,9 +10,6 @@ import PollenForecastTab from '@/components/weather/PollenForecastTab';
 import WeatherHistoryTab from '@/components/weather/WeatherHistoryTab';
 import PrecipitationTab from '@/components/weather/PrecipitationTab';
 import AnalyticsTab from '@/components/weather/AnalyticsTab';
-import ApiKeySettings from '@/components/ApiKeySettings';
-import AdminAuth from '@/components/AdminAuth';
-
 import SynopticMap from '@/components/weather/SynopticMap';
 import PressureTab from '@/components/weather/PressureTab';
 import NotificationSettings from '@/components/weather/NotificationSettings';
@@ -47,7 +44,6 @@ const Index = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const [geolocating, setGeolocating] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout>();
   
   const popularCities = [
@@ -315,10 +311,6 @@ const Index = () => {
         />
 
         <AirQualityCard airQualityData={airQualityData} />
-
-        <AdminAuth onAuthChange={setIsAdmin} />
-
-        <ApiKeySettings isAdmin={isAdmin} />
 
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 

@@ -7,6 +7,7 @@ Returns: HTTP response with weather data including temperature, conditions, sun 
 import json
 import urllib.request
 import urllib.parse
+import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -23,6 +24,94 @@ def get_coordinates(city: str) -> Optional[Dict[str, float]]:
         'yekaterinburg': {'lat': 56.8389, 'lon': 60.6057}
     }
     return cities_coords.get(city.lower())
+
+def fetch_openweathermap_data(lat: float, lon: float, api_key: str) -> Dict[str, Any]:
+    """Fetch weather from OpenWeatherMap API"""
+    try:
+        current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=ru"
+        forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=ru"
+        
+        with urllib.request.urlopen(current_url) as response:
+            current_data = json.loads(response.read().decode())
+        
+        with urllib.request.urlopen(forecast_url) as response:
+            forecast_data = json.loads(response.read().decode())
+        
+        weather_icons = {
+            '01d': 'Sun', '01n': 'Moon', '02d': 'CloudSun', '02n': 'CloudMoon',
+            '03d': 'Cloud', '03n': 'Cloud', '04d': 'Cloud', '04n': 'Cloud',
+            '09d': 'CloudDrizzle', '09n': 'CloudDrizzle', '10d': 'CloudRain', '10n': 'CloudRain',
+            '11d': 'CloudLightning', '11n': 'CloudLightning', '13d': 'CloudSnow', '13n': 'CloudSnow',
+            '50d': 'Cloud', '50n': 'Cloud'
+        }
+        
+        icon_code = current_data['weather'][0]['icon']
+        
+        result = {
+            'current': {
+                'temp': round(current_data['main']['temp']),
+                'feelsLike': round(current_data['main']['feels_like']),
+                'condition': current_data['weather'][0]['description'].capitalize(),
+                'icon': weather_icons.get(icon_code, 'Cloud'),
+                'humidity': current_data['main']['humidity'],
+                'windSpeed': round(current_data['wind']['speed'] * 3.6),
+                'windDirection': current_data['wind'].get('deg', 0),
+                'pressure': current_data['main']['pressure'],
+                'cloudCover': current_data['clouds']['all'],
+                'precipitation': current_data.get('rain', {}).get('1h', 0)
+            },
+            'hourly': [],
+            'daily': [],
+            'history': [],
+            'sun': {
+                'sunrise': datetime.fromtimestamp(current_data['sys']['sunrise']).strftime('%H:%M'),
+                'sunset': datetime.fromtimestamp(current_data['sys']['sunset']).strftime('%H:%M')
+            }
+        }
+        
+        for item in forecast_data['list'][:24]:
+            icon_code = item['weather'][0]['icon']
+            result['hourly'].append({
+                'time': datetime.fromtimestamp(item['dt']).strftime('%H:%M'),
+                'temp': round(item['main']['temp']),
+                'icon': weather_icons.get(icon_code, 'Cloud'),
+                'precip': item.get('pop', 0) * 100,
+                'rain': round(item.get('rain', {}).get('3h', 0), 1),
+                'snow': round(item.get('snow', {}).get('3h', 0), 1),
+                'precipitation': round(item.get('rain', {}).get('3h', 0) + item.get('snow', {}).get('3h', 0), 1),
+                'pressure': item['main']['pressure']
+            })
+        
+        daily_groups = {}
+        for item in forecast_data['list']:
+            date = datetime.fromtimestamp(item['dt']).strftime('%Y-%m-%d')
+            if date not in daily_groups:
+                daily_groups[date] = []
+            daily_groups[date].append(item)
+        
+        days = ['Сегодня', 'Завтра', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+        for idx, (date, items) in enumerate(list(daily_groups.items())[:10]):
+            temps = [item['main']['temp'] for item in items]
+            icon_code = items[len(items)//2]['weather'][0]['icon']
+            
+            result['daily'].append({
+                'day': days[idx] if idx < len(days) else date,
+                'high': round(max(temps)),
+                'low': round(min(temps)),
+                'icon': weather_icons.get(icon_code, 'Cloud'),
+                'precip': round(max([item.get('pop', 0) for item in items]) * 100),
+                'precipitation': round(sum([item.get('rain', {}).get('3h', 0) + item.get('snow', {}).get('3h', 0) for item in items]), 1),
+                'rain': round(sum([item.get('rain', {}).get('3h', 0) for item in items]), 1),
+                'snow': round(sum([item.get('snow', {}).get('3h', 0) for item in items]), 1),
+                'condition': items[len(items)//2]['weather'][0]['description'].capitalize(),
+                'pressureMax': round(max([item['main']['pressure'] for item in items])),
+                'pressureMin': round(min([item['main']['pressure'] for item in items]))
+            })
+        
+        return result
+    except Exception as e:
+        print(f"OpenWeatherMap API error: {e}")
+        return None
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
@@ -58,8 +147,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if not coords:
         coords = {'lat': 55.7558, 'lon': 37.6173}
     
-    lat = params.get('lat', coords['lat'])
-    lon = params.get('lon', coords['lon'])
+    lat = float(params.get('lat', coords['lat']))
+    lon = float(params.get('lon', coords['lon']))
+    
+    weather_api_key = os.environ.get('WEATHER_API_KEY')
+    
+    if weather_api_key:
+        result = fetch_openweathermap_data(lat, lon, weather_api_key)
+        if result:
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(result, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
     
     try:
         api_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,precipitation,rain,snowfall,pressure_msl&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,precipitation_sum,rain_sum,snowfall_sum,pressure_msl_max,pressure_msl_min&timezone=auto&forecast_days=14&past_days=7"
