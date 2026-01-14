@@ -108,36 +108,36 @@ export default function PrecipitationTab({ loading, weatherData, dailyForecast }
         <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl dark:bg-[#1e2936]/95 overflow-hidden">
           <h3 className="text-xl font-semibold text-[#34495E] dark:text-white mb-6">Рекомендации</h3>
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-blue-50">
+            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20">
               <div className="flex items-center gap-3 mb-2">
                 <Icon name="Umbrella" size={24} className="text-blue-600 dark:text-blue-400" />
                 <div className="font-semibold text-[#34495E] dark:text-white">Зонт обязателен</div>
               </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/60">
+              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
                 {dailyForecast.filter((d: any) => d.precip > 50).length > 0 
                   ? `В ${dailyForecast.filter((d: any) => d.precip > 50).length} из 7 дней высокая вероятность дождя`
                   : 'На этой неделе осадки маловероятны'}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/20 dark:to-[#4A90E2]/20">
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
               <div className="flex items-center gap-3 mb-2">
-                <Icon name="Car" size={24} className="text-[#4A90E2]" />
+                <Icon name="Car" size={24} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
                 <div className="font-semibold text-[#34495E] dark:text-white">Дорожные условия</div>
               </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/60">
+              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
                 {dailyForecast.some((d: any) => (d.snow || 0) > 0)
                   ? 'Ожидается снег — будьте осторожны на дорогах'
                   : 'Дорожные условия будут благоприятными'}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/20 dark:to-[#98D8C8]/20">
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/30 dark:to-[#98D8C8]/30">
               <div className="flex items-center gap-3 mb-2">
-                <Icon name="CalendarCheck" size={24} className="text-[#98D8C8]" />
+                <Icon name="CalendarCheck" size={24} className="text-[#98D8C8] dark:text-[#7EC8E3]" />
                 <div className="font-semibold text-[#34495E] dark:text-white">Планирование</div>
               </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/60">
+              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
                 Лучшие дни для активного отдыха: {
                   dailyForecast
                     .filter((d: any, i: number) => i < 7 && d.precip < 30)
