@@ -5,6 +5,8 @@ import WeatherHeader from '@/components/weather/WeatherHeader';
 import CurrentWeather from '@/components/weather/CurrentWeather';
 import AirQualityCard from '@/components/weather/AirQualityCard';
 import GeomagneticCard from '@/components/weather/GeomagneticCard';
+import AIForecast from '@/components/weather/AIForecast';
+import WindPollenCard from '@/components/weather/WindPollenCard';
 import HourlyForecastTab from '@/components/weather/HourlyForecastTab';
 import DailyForecastTab from '@/components/weather/DailyForecastTab';
 import PollenForecastTab from '@/components/weather/PollenForecastTab';
@@ -381,6 +383,10 @@ const Index = () => {
         <AirQualityCard airQualityData={airQualityData} />
 
         <GeomagneticCard geomagneticData={geomagneticData} />
+
+        <AIForecast weatherData={weatherData} loading={loading} />
+
+        <WindPollenCard weatherData={weatherData} pollenData={null} loading={loading} />
 
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
