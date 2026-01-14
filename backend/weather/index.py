@@ -69,7 +69,7 @@ def fetch_openweathermap_data(lat: float, lon: float, api_key: str) -> Dict[str,
             }
         }
         
-        for item in forecast_data['list'][:8]:
+        for item in forecast_data['list'][:24]:
             icon_code = item['weather'][0]['icon']
             result['hourly'].append({
                 'time': datetime.fromtimestamp(item['dt']).strftime('%H:%M'),
