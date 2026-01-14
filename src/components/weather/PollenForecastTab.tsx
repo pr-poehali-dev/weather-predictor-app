@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import WindPollenCard from './WindPollenCard';
 
 interface PollenForecastTabProps {
   loading: boolean;
@@ -93,71 +94,9 @@ export default function PollenForecastTab({ loading, airQualityData, weatherData
         )}
       </Card>
 
-      {weatherData && (
-        <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl mt-6 dark:bg-[#1e2936]/95 overflow-hidden">
-          <h3 className="text-xl font-semibold text-[#34495E] dark:text-white mb-6">Направление ветра и распространение пыльцы</h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <Icon name="Wind" size={32} className="text-[#4A90E2]" />
-                <div>
-                  <div className="text-sm text-[#34495E]/60 dark:text-white/60">Текущий ветер</div>
-                  <div className="text-2xl font-bold text-[#34495E] dark:text-white">{weatherData.current?.windSpeed || 0} км/ч</div>
-                  <div className="text-sm text-[#34495E]/60 dark:text-white/60">Направление: {weatherData.current?.windDirection || 'СВ'}</div>
-                </div>
-              </div>
-              <div className="relative w-64 h-64 mx-auto bg-gradient-to-br from-[#4A90E2]/10 to-[#98D8C8]/10 rounded-full flex items-center justify-center">
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-[#34495E] dark:text-white">С</div>
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-[#34495E] dark:text-white">Ю</div>
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#34495E] dark:text-white">З</div>
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#34495E] dark:text-white">В</div>
-                
-                <div className="w-48 h-48 bg-white/50 rounded-full flex items-center justify-center relative">
-                  <Icon name="Navigation" size={48} className="text-[#4A90E2] transform rotate-45" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-[#4A90E2] rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/30 dark:to-[#98D8C8]/30">
-                <div className="flex items-center gap-3 mb-3">
-                  <Icon name="MapPin" size={24} className="text-[#4A90E2]" />
-                  <div className="font-semibold text-[#34495E] dark:text-white">Зона риска</div>
-                </div>
-                <p className="text-sm text-[#34495E]/80 dark:text-white/80">
-                  Пыльца распространяется в северо-восточном направлении. Наибольшая концентрация ожидается в радиусе 5-10 км от центра города.
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
-                <div className="flex items-center gap-3 mb-3">
-                  <Icon name="Info" size={24} className="text-[#98D8C8]" />
-                  <div className="font-semibold text-[#34495E] dark:text-white">Рекомендации</div>
-                </div>
-                <ul className="text-sm text-[#34495E]/80 dark:text-white/80 space-y-2">
-                  <li>• Избегайте прогулок в парках с 10:00 до 16:00</li>
-                  <li>• Держите окна закрытыми в утренние часы</li>
-                  <li>• Используйте очиститель воздуха в помещении</li>
-                  <li>• Примите антигистаминные при необходимости</li>
-                </ul>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <Icon name="TrendingUp" size={24} className="text-[#4A90E2]" />
-                  <div className="font-semibold text-[#34495E] dark:text-white">Прогноз на завтра</div>
-                </div>
-                <p className="text-sm text-[#34495E]/80 dark:text-white/60">
-                  Ожидается снижение концентрации пыльцы на 30% из-за вероятных осадков и изменения направления ветра на западное.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
+      <div className="mt-6">
+        <WindPollenCard weatherData={weatherData} pollenData={airQualityData} loading={loading} />
+      </div>
     </>
   );
 }

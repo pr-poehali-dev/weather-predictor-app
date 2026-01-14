@@ -384,10 +384,6 @@ const Index = () => {
 
         <GeomagneticCard geomagneticData={geomagneticData} />
 
-        <AIForecast weatherData={weatherData} loading={loading} />
-
-        <WindPollenCard weatherData={weatherData} pollenData={null} loading={loading} />
-
         <SynopticMap selectedLocation={selectedLocation} weatherData={weatherData} />
 
         <Tabs defaultValue="hourly" className="w-full">
@@ -453,7 +449,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
-            <AnalyticsTab loading={loading} dailyForecast={dailyForecast} />
+            <AnalyticsTab loading={loading} dailyForecast={dailyForecast} weatherData={weatherData} />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
