@@ -19,6 +19,7 @@ import { notificationService } from '@/services/notificationService';
 const WEATHER_API_URL = 'https://functions.poehali.dev/e720239f-3450-4c60-8958-9b046ff3b470';
 const GEOCODING_API_URL = 'https://functions.poehali.dev/7faffcea-6e50-4b65-a1c3-20a51eabee7a';
 const AIR_QUALITY_API_URL = 'https://functions.poehali.dev/fe7bc55e-5d6e-4c25-a2bf-2fd682293e6a';
+const GEOMAGNETIC_API_URL = 'https://functions.poehali.dev/e4685d39-a01f-4d55-a004-98d8912131f7';
 
 interface Location {
   name: string;
@@ -202,44 +203,34 @@ const Index = () => {
 
   const fetchGeomagneticData = async () => {
     try {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dayAfter = new Date(today);
-      dayAfter.setDate(dayAfter.getDate() + 2);
-
-      const formatDate = (date: Date) => {
+      const response = await fetch(GEOMAGNETIC_API_URL);
+      const data = await response.json();
+      
+      const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
         const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
         return `${days[date.getDay()]}, ${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
       };
 
-      const kIndex = Math.floor(Math.random() * 9);
-      const getLevel = (k: number) => {
-        if (k <= 2) return 'Спокойная обстановка';
-        if (k <= 4) return 'Слабая геомагнитная буря';
-        if (k <= 6) return 'Умеренная магнитная буря';
+      const getLevelName = (level: string) => {
+        if (level === 'low') return 'Спокойная обстановка';
+        if (level === 'moderate') return 'Слабая геомагнитная буря';
+        if (level === 'high') return 'Умеренная магнитная буря';
         return 'Сильная магнитная буря';
       };
 
-      const getDescription = (k: number) => {
-        if (k <= 2) return 'Геомагнитное поле Земли спокойное. Негативного влияния на самочувствие не ожидается.';
-        if (k <= 4) return 'Небольшие возмущения магнитного поля. Чувствительные люди могут испытывать легкий дискомфорт.';
-        if (k <= 6) return 'Заметные колебания магнитного поля. Возможны головные боли и усталость у метеочувствительных людей.';
-        return 'Сильные возмущения геомагнитного поля! Высокий риск недомогания, головных болей, перепадов давления.';
+      const formattedData = {
+        kIndex: data.current.kp,
+        level: getLevelName(data.current.level),
+        description: data.current.description,
+        forecast: data.forecast.map((f: any) => ({
+          date: formatDate(f.date),
+          kIndex: f.kp,
+          level: getLevelName(f.level)
+        }))
       };
 
-      const mockData = {
-        kIndex,
-        level: getLevel(kIndex),
-        description: getDescription(kIndex),
-        forecast: [
-          { date: formatDate(today), kIndex, level: getLevel(kIndex) },
-          { date: formatDate(tomorrow), kIndex: Math.floor(Math.random() * 6), level: getLevel(Math.floor(Math.random() * 6)) },
-          { date: formatDate(dayAfter), kIndex: Math.floor(Math.random() * 6), level: getLevel(Math.floor(Math.random() * 6)) }
-        ]
-      };
-
-      setGeomagneticData(mockData);
+      setGeomagneticData(formattedData);
     } catch (error) {
       console.error('Failed to fetch geomagnetic data:', error);
     }

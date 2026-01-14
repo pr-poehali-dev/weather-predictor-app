@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get geomagnetic data",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBodySchema": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "object"
+          },
+          "forecast": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  ]
+}
