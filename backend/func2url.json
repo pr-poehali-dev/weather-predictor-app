@@ -1,4 +1,6 @@
 {
+  "auth": "https://functions.poehali.dev/f476f07c-1ebf-4e66-9df6-e95aeb8dbe4d",
+  "user-settings": "https://functions.poehali.dev/fd0bbd08-d8b4-4178-ab3a-fa177720ae72",
   "geomagnetic": "https://functions.poehali.dev/e4685d39-a01f-4d55-a004-98d8912131f7",
   "telegram-bot": "https://functions.poehali.dev/f03fce2f-ec26-44b9-8491-2ec4d99f6a01",
   "notifications": "https://functions.poehali.dev/69d98fba-a11e-4a25-bab8-02070f305ce1",

@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Login with Telegram",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user": {
+          "id": 123456789,
+          "username": "testuser",
+          "first_name": "Test"
+        }
+      },
+      "expectedStatus": 200
+    }
+  ]
+}

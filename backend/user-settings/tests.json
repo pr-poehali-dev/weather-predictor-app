@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Save user settings",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "location_lat": 55.7558,
+        "location_lon": 37.6173,
+        "location_name": "Москва",
+        "notifications_enabled": true
+      },
+      "expectedStatus": 200
+    }
+  ]
+}
