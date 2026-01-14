@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import TelegramAuth from '@/components/auth/TelegramAuth';
 import WeatherHeader from '@/components/weather/WeatherHeader';
 import CurrentWeather from '@/components/weather/CurrentWeather';
 import AirQualityCard from '@/components/weather/AirQualityCard';
@@ -34,7 +33,6 @@ interface Location {
 }
 
 const Index = () => {
-  const [user, setUser] = useState<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location>({
     name: 'Москва',
     lat: 55.7558,
@@ -111,30 +109,10 @@ const Index = () => {
   ];
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('weatherUser');
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      
-      if (parsedUser.settings?.location_lat && parsedUser.settings?.location_lon) {
-        setSelectedLocation({
-          name: parsedUser.settings.location_name || 'Моя локация',
-          lat: parseFloat(parsedUser.settings.location_lat),
-          lon: parseFloat(parsedUser.settings.location_lon),
-          display_name: parsedUser.settings.location_name || 'Моя локация',
-          country: ''
-        });
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      fetchWeather(selectedLocation.lat, selectedLocation.lon);
-      fetchAirQuality(selectedLocation.lat, selectedLocation.lon);
-      fetchGeomagneticData();
-    }
-  }, [selectedLocation, user]);
+    fetchWeather(selectedLocation.lat, selectedLocation.lon);
+    fetchAirQuality(selectedLocation.lat, selectedLocation.lon);
+    fetchGeomagneticData();
+  }, [selectedLocation]);
 
   useEffect(() => {
     if (searchQuery.length === 0) {
@@ -377,59 +355,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [weatherData, dailyForecast, currentWeather]);
 
-  const handleAuth = (authenticatedUser: any) => {
-    setUser(authenticatedUser);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setSelectedLocation({
-      name: 'Москва',
-      lat: 55.7558,
-      lon: 37.6173,
-      display_name: 'Москва',
-      country: 'Россия'
-    });
-  };
-
-  const handleSaveSettings = async (settings: any) => {
-    if (user.isGuest) {
-      const updatedUser = { ...user, settings };
-      localStorage.setItem('weatherUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      return;
-    }
-
-    try {
-      const response = await fetch('https://functions.poehali.dev/fd0bbd08-d8b4-4178-ab3a-fa177720ae72', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          location_lat: selectedLocation.lat,
-          location_lon: selectedLocation.lon,
-          location_name: selectedLocation.display_name,
-          notifications_enabled: settings.notifications_enabled ?? true
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const updatedUser = { ...user, settings: data };
-        localStorage.setItem('weatherUser', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-      }
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-    }
-  };
-
-  if (!user) {
-    return <TelegramAuth onAuth={handleAuth} />;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#4A90E2] via-[#7EC8E3] to-[#98D8C8] dark:from-[#1a2332] dark:via-[#243447] dark:to-[#2a4556] p-3 md:p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
@@ -445,9 +370,6 @@ const Index = () => {
           selectLocation={selectLocation}
           getCurrentLocation={getCurrentLocation}
           geolocating={geolocating}
-          user={user}
-          onLogout={handleLogout}
-          onSaveSettings={handleSaveSettings}
         />
 
         <CurrentWeather

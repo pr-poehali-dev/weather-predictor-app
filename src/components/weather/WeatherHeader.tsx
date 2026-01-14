@@ -3,7 +3,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import Icon from '@/components/ui/icon';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import UserMenu from '@/components/auth/UserMenu';
 
 interface Location {
   name: string;
@@ -26,9 +25,6 @@ interface WeatherHeaderProps {
   selectLocation: (location: Location) => void;
   getCurrentLocation: () => void;
   geolocating: boolean;
-  user?: any;
-  onLogout?: () => void;
-  onSaveSettings?: (settings: any) => void;
 }
 
 export default function WeatherHeader({
@@ -42,10 +38,7 @@ export default function WeatherHeader({
   popularCities,
   selectLocation,
   getCurrentLocation,
-  geolocating,
-  user,
-  onLogout,
-  onSaveSettings
+  geolocating
 }: WeatherHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
@@ -143,9 +136,6 @@ export default function WeatherHeader({
         >
           <Icon name={geolocating ? "Loader2" : "MapPinned"} size={16} className={geolocating ? "animate-spin" : ""} />
         </Button>
-        {user && onLogout && onSaveSettings && (
-          <UserMenu user={user} onLogout={onLogout} onSaveSettings={onSaveSettings} />
-        )}
         <ThemeToggle />
       </div>
     </div>
