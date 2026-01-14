@@ -261,9 +261,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'pressureMin': round(daily.get('pressure_msl_min', [])[i]) if i < len(daily.get('pressure_msl_min', [])) else 0
                 })
         
-        days = ['Сегодня', 'Завтра', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+        days = ['Сегодня', 'Завтра', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс', 'Пн']
         forecast_start = max(0, total_daily - 14)
-        for i in range(forecast_start, total_daily):
+        forecast_end = min(forecast_start + 10, total_daily)
+        for i in range(forecast_start, forecast_end):
             weather_code = daily.get('weather_code', [])[i] if i < len(daily.get('weather_code', [])) else 0
             day_index = i - forecast_start
             
