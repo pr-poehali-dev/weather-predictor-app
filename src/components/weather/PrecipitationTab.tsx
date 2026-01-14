@@ -108,44 +108,145 @@ export default function PrecipitationTab({ loading, weatherData, dailyForecast }
         <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl dark:bg-[#1e2936]/95 overflow-hidden">
           <h3 className="text-xl font-semibold text-[#34495E] dark:text-white mb-6">Рекомендации</h3>
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20">
-              <div className="flex items-center gap-3 mb-2">
-                <Icon name="Umbrella" size={24} className="text-blue-600 dark:text-blue-400" />
-                <div className="font-semibold text-[#34495E] dark:text-white">Зонт обязателен</div>
-              </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
-                {dailyForecast.filter((d: any) => d.precip > 50).length > 0 
-                  ? `В ${dailyForecast.filter((d: any) => d.precip > 50).length} из 7 дней высокая вероятность дождя`
-                  : 'На этой неделе осадки маловероятны'}
-              </p>
-            </div>
+            {(() => {
+              const currentMonth = new Date().getMonth();
+              const isWinter = currentMonth === 11 || currentMonth === 0 || currentMonth === 1;
+              const isSummer = currentMonth >= 5 && currentMonth <= 7;
+              
+              const rainDays = dailyForecast.filter((d: any) => d.precip > 50 && (d.rain || 0) > 0).length;
+              const snowDays = dailyForecast.filter((d: any) => (d.snow || 0) > 0).length;
+              const clearDays = dailyForecast.filter((d: any, i: number) => i < 7 && d.precip < 30).length;
+              
+              return (
+                <>
+                  {/* Совет по зонту/снегу */}
+                  {snowDays > 0 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-800/20 border-2 border-blue-300 dark:border-blue-700">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="CloudSnow" size={24} className="text-blue-600 dark:text-blue-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Зима в самом разгаре</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {snowDays === 1 
+                          ? 'Ожидается снегопад в один из дней — приготовьте зимнюю куртку'
+                          : `Снег ожидается в ${snowDays} дней — одевайтесь теплее и берите перчатки`}
+                      </p>
+                    </div>
+                  ) : rainDays > 0 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Umbrella" size={24} className="text-blue-600 dark:text-blue-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">{isWinter ? 'Дождь в холода' : 'Зонт обязателен'}</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {rainDays === 1
+                          ? `${isWinter ? 'Дождь зимой неприятен — одевайтесь по погоде' : 'Возможен дождь в один из дней'}`
+                          : `${isWinter ? `Мокрая погода ${rainDays} дней — тёплая куртка обязательна` : `Высокая вероятность дождя в ${rainDays} из 7 дней`}`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-50 dark:from-green-900/30 dark:to-emerald-800/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Sun" size={24} className="text-green-600 dark:text-green-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">{isWinter ? 'Сухая морозная погода' : 'Ясная неделя'}</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {isWinter 
+                          ? 'Осадков не ожидается — хорошее время для зимних прогулок'
+                          : 'На этой неделе осадки маловероятны — отличное время для активного отдыха'}
+                      </p>
+                    </div>
+                  )}
 
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Icon name="Car" size={24} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
-                <div className="font-semibold text-[#34495E] dark:text-white">Дорожные условия</div>
-              </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
-                {dailyForecast.some((d: any) => (d.snow || 0) > 0)
-                  ? 'Ожидается снег — будьте осторожны на дорогах'
-                  : 'Дорожные условия будут благоприятными'}
-              </p>
-            </div>
+                  {/* Совет по дорогам */}
+                  {snowDays > 1 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-orange-100 to-red-50 dark:from-orange-900/30 dark:to-red-800/20 border-2 border-orange-400 dark:border-orange-700">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="AlertTriangle" size={24} className="text-orange-600 dark:text-orange-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Будьте осторожны!</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        Снег и гололёд — скорость снижайте, дистанцию увеличивайте. Зимние шины обязательны
+                      </p>
+                    </div>
+                  ) : snowDays === 1 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-yellow-100 to-amber-50 dark:from-yellow-900/30 dark:to-amber-800/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Car" size={24} className="text-yellow-600 dark:text-yellow-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Дорожные условия</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        Возможен снег — будьте внимательны на дорогах, особенно утром
+                      </p>
+                    </div>
+                  ) : rainDays > 2 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Car" size={24} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Мокрые дороги</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        Дожди в течение недели — тормозной путь увеличивается, соблюдайте дистанцию
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#98D8C8]/20 to-[#4A90E2]/20 dark:from-[#98D8C8]/30 dark:to-[#4A90E2]/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Car" size={24} className="text-[#4A90E2] dark:text-[#7EC8E3]" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Хорошая видимость</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {isWinter 
+                          ? 'Дороги сухие, но осторожность зимой не помешает'
+                          : 'Дорожные условия благоприятные — комфортная поездка'}
+                      </p>
+                    </div>
+                  )}
 
-            <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/30 dark:to-[#98D8C8]/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Icon name="CalendarCheck" size={24} className="text-[#98D8C8] dark:text-[#7EC8E3]" />
-                <div className="font-semibold text-[#34495E] dark:text-white">Планирование</div>
-              </div>
-              <p className="text-sm text-[#34495E]/80 dark:text-white/80">
-                Лучшие дни для активного отдыха: {
-                  dailyForecast
-                    .filter((d: any, i: number) => i < 7 && d.precip < 30)
-                    .map((d: any) => d.day)
-                    .join(', ') || 'данных нет'
-                }
-              </p>
-            </div>
+                  {/* Совет по планированию */}
+                  {clearDays >= 5 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-purple-100 to-pink-50 dark:from-purple-900/30 dark:to-pink-800/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="CalendarCheck" size={24} className="text-purple-600 dark:text-purple-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">{isWinter ? 'Зимние активности' : 'Отличная неделя!'}</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {isWinter 
+                          ? `${clearDays} ясных дней — идеально для катания на коньках, лыжах или прогулок в парке`
+                          : `${clearDays} ясных дней — отличное время для пикников, спорта и прогулок на природе`}
+                      </p>
+                    </div>
+                  ) : clearDays >= 2 ? (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#4A90E2]/20 to-[#98D8C8]/20 dark:from-[#4A90E2]/30 dark:to-[#98D8C8]/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="CalendarCheck" size={24} className="text-[#98D8C8] dark:text-[#7EC8E3]" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">Планирование</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        Благоприятные дни для активности: {
+                          dailyForecast
+                            .filter((d: any, i: number) => i < 7 && d.precip < 30)
+                            .map((d: any) => d.day)
+                            .join(', ') || 'уточняется'
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-gray-100 to-slate-50 dark:from-gray-900/30 dark:to-slate-800/20">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon name="Home" size={24} className="text-gray-600 dark:text-gray-400" />
+                        <div className="font-semibold text-[#34495E] dark:text-white">{isWinter ? 'Уютная неделя дома' : 'Непогода'}</div>
+                      </div>
+                      <p className="text-sm text-[#34495E]/80 dark:text-white/80">
+                        {isWinter
+                          ? 'Большую часть недели осадки — время для домашнего уюта и горячего чая'
+                          : 'На улице преимущественно осадки — запланируйте домашние дела или культурные мероприятия'}
+                      </p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </Card>
       </div>
